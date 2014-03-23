@@ -4,10 +4,8 @@
 #include <boost/thread.hpp>
 
 namespace msr {
-    namespace thread {
-        using thread = boost::thread;
-        namespace this_thread = boost::this_thread;
-    }
+    using boost::thread;
+    namespace this_thread = boost::this_thread;
 }
 
 #endif
