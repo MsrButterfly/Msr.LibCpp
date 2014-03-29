@@ -10,7 +10,7 @@ int main(int argc, const char *argv[]) {
             auto begin = std::chrono::high_resolution_clock::now();
             for (std::size_t j = 0; j < 1000; ++j) {
                 pool.post([]() {
-                    for (std::size_t j = 0; j < 1000000; j++);
+                    for (std::size_t i = 0; i < 1000000; ++i);
                 });
             }
             pool.wait();
