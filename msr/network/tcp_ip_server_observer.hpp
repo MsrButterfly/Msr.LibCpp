@@ -15,11 +15,9 @@ namespace msr {
             using base = observer_base;
             using server = network::server<protocol::ip::tcp>;
         public:
-            observer() {}
-        public:
-            virtual void did_accept(std::weak_ptr<server> s, std::shared_ptr<server::connection> c, boost::system::error_code error) = 0;
-            virtual void did_send(std::weak_ptr<server> s, std::shared_ptr<server::connection> c, boost::system::error_code error, std::size_t size) = 0;
-            virtual void did_receive(std::weak_ptr<server> s, std::shared_ptr<server::connection> c, boost::system::error_code error, std::size_t size) = 0;
+            virtual void did_accept(std::weak_ptr<server> s, std::shared_ptr<server::connection> c, boost::system::error_code error) {}
+            virtual void did_send(std::weak_ptr<server> s, std::shared_ptr<server::connection> c, boost::system::error_code error, std::size_t size) {}
+            virtual void did_receive(std::weak_ptr<server> s, std::shared_ptr<server::connection> c, boost::system::error_code error, std::size_t size) {}
         public:
             ~observer() {}
         };

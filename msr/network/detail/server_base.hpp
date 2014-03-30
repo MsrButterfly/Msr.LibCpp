@@ -12,7 +12,7 @@
 namespace msr {
     namespace network {
         namespace detail {
-            class server_base: boost::noncopyable, protected std::enable_shared_from_this<server_base> {
+            class server_base: boost::noncopyable, public std::enable_shared_from_this<server_base> {
             public:
                 using self = server_base;
                 using connection = connection_base;

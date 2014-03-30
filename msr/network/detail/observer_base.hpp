@@ -13,7 +13,7 @@ namespace msr {
                 using self = observer_base;
                 using server = server_base;
             public:
-                virtual ~observer_base() {};
+                virtual ~observer_base() {}
             };
         }
     }
