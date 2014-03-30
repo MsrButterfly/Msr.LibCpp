@@ -3,23 +3,17 @@
 
 #include <memory>
 #include <boost/utility.hpp>
+#include <msr/network/detail/observer_base.hpp>
 
 namespace msr {
     namespace network {
-        namespace detail {
-            class observer_base: boost::noncopyable {
-            public:
-                using self = observer_base;
-                using shared_ptr = std::shared_ptr<self>;
-            };
-        }
-        template <class Server>
+        template <class T>
+        struct is_observer: public boost::is_base_of<detail::observer_base, T> {};
+        template <class X>
         class observer: public detail::observer_base {
         public:
             using self = observer;
             using base = observer_base;
-            using server = Server;
-            using shared_ptr = std::shared_ptr<self>;
         };
     }
 }
