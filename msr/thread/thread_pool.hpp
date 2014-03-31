@@ -27,11 +27,6 @@ namespace msr {
         using mutex = boost::shared_mutex;
         using readonly_lock = boost::shared_lock<mutex>;
         using readwrite_lock = boost::unique_lock<mutex>;
-        using thread_container = std::set<thread_ptr>;
-        using condition_variable_any = std::condition_variable_any;
-        using task_container = std::deque<task>;
-        using sign = std::atomic<bool>;
-        using size_t = std::atomic<std::size_t>;
     public:
         thread_pool(const std::size_t size = thread::hardware_concurrency()):
             loop_(true), stopped_(true), size_(size) {
@@ -61,6 +56,7 @@ namespace msr {
                 readwrite_lock task_lock(task_mutex_);
                 loop_ = false;
                 new_task_posted_.notify_all();
+                unsafe_clear_task_queue();
             }
             for (auto &t : threads_) {
                 try {
@@ -85,13 +81,15 @@ namespace msr {
             new_task_posted_.notify_one();
         }
         void wait() const {
-            while (!task_queue_is_empty()) {
-                this_thread::sleep_for(boost::chrono::microseconds(100));
+            readonly_lock lock(task_mutex_);
+            if (!unsafe_task_queue_is_empty()) {
+                task_queue_is_empty_.wait(lock);
             }
         }
         void clear_task_queue() {
             readwrite_lock lock(task_mutex_);
             unsafe_clear_task_queue();
+            task_queue_is_empty_.notify_all();
         }
         bool task_queue_is_empty() const {
             readonly_lock lock(task_mutex_);
@@ -142,6 +140,9 @@ namespace msr {
                     }
                     _task = task_queue_.front();
                     task_queue_.pop_front();
+                    if (unsafe_task_queue_is_empty()) {
+                        task_queue_is_empty_.notify_all();
+                    }
                 }
 #if MSR_THREAD_DEBUG(THREAD_POOL)
                 auto begin = high_resolution_clock::now();
@@ -183,12 +184,13 @@ namespace msr {
             }
         }
     private:
-        sign stopped_;
-        sign loop_;
-        thread_container threads_;
-        task_container task_queue_;
-        condition_variable_any new_task_posted_;
-        size_t size_;
+        std::atomic<bool> stopped_;
+        std::atomic<bool> loop_;
+        std::set<thread_ptr> threads_;
+        std::deque<task> task_queue_;
+        std::atomic<std::size_t> size_;
+        mutable std::condition_variable_any new_task_posted_;
+        mutable std::condition_variable_any task_queue_is_empty_;
         mutable mutex thread_mutex_;
         mutable mutex task_mutex_;
     };
