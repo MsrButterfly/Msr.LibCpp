@@ -21,7 +21,7 @@ namespace msr {
             _what = e.what();
             return *this;
         }
-        virtual const char *what() const MSR_NOEXCEPT override{
+        virtual const char *what() const MSR_NOEXCEPT override {
             return _what.c_str();
         }
     private:

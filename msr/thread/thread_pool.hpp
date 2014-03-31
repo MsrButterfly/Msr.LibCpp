@@ -23,7 +23,6 @@ namespace msr {
         using task = std::function<void()>;
         using exception = thread_pool_exception;
     private:
-        using thread_ptr = std::unique_ptr<thread>;
         using mutex = boost::shared_mutex;
         using readonly_lock = boost::shared_lock<mutex>;
         using readwrite_lock = boost::unique_lock<mutex>;
@@ -40,7 +39,7 @@ namespace msr {
             }
             loop_ = true;
             for (unsigned int i = 0; i < size_; i++) {
-                threads_.insert(thread_ptr(new thread(&self::task_loop, this)));
+                threads_.insert(std::unique_ptr<thread>(new thread(&self::task_loop, this)));
             }
             stopped_ = false;
         }
@@ -55,8 +54,8 @@ namespace msr {
             {
                 readwrite_lock task_lock(task_mutex_);
                 loop_ = false;
-                new_task_posted_.notify_all();
                 unsafe_clear_task_queue();
+                new_task_posted_.notify_all();
             }
             for (auto &t : threads_) {
                 try {
@@ -186,7 +185,7 @@ namespace msr {
     private:
         std::atomic<bool> stopped_;
         std::atomic<bool> loop_;
-        std::set<thread_ptr> threads_;
+        std::set<std::unique_ptr<thread>> threads_;
         std::deque<task> task_queue_;
         std::atomic<std::size_t> size_;
         mutable std::condition_variable_any new_task_posted_;
