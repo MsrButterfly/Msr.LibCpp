@@ -5,6 +5,8 @@
 #include <msr/network/detail/observer_base.hpp>
 #include <msr/network/detail/connection_base.hpp>
 #include <msr/network/error.hpp>
+#include <msr/network/data.hpp>
+#include <msr/network/data_exception.hpp>
 #include <msr/network/server_exception.hpp>
 #include <msr/network/connection.hpp>
 #include <msr/network/tcp_ip_connection.hpp>

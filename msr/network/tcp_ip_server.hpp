@@ -6,8 +6,9 @@
 #include <boost/asio.hpp>
 #include <msr/network/protocol.hpp>
 #include <msr/network/server.hpp>
-#include <msr/network/connection.hpp>
+#include <msr/network/tcp_ip_connection.hpp>
 #include <msr/thread.hpp>
+#include <msr/network/data.hpp>
 
 namespace msr {
     namespace network {
@@ -30,10 +31,8 @@ namespace msr {
             }
         public:
             void accept();
-            template <class ConstBufferSequence>
-            void send(std::shared_ptr<connection> c, ConstBufferSequence &buffer);
-            template <class MutableBufferSequence>
-            void receive(std::shared_ptr<connection> c, MutableBufferSequence &buffer);
+            void send(std::shared_ptr<connection> c, const data &d);
+            void receive(std::shared_ptr<connection> c, const std::size_t &size);
         public:
             ~server() {
                 service_.stop();
