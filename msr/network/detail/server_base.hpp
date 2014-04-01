@@ -21,21 +21,21 @@ namespace msr {
             public:
                 server_base() {}
             public:
-                template <class Observer>
+                template <class Observer, class ...Args>
                 typename boost::enable_if<is_observer<Observer>,
-                    typename std::shared_ptr<Observer>>::type create_observer() {
-                        auto o = std::make_shared<Observer>();
-                        observers_.insert(o);
-                        return o;
+                std::shared_ptr<Observer>>::type create_observer(Args &&...args) {
+                    auto o = std::make_shared<Observer>(std::forward<Args>(args)...);
+                    observers_.insert(o);
+                    return o;
                 }
             protected:
                 template <class Server, class ...Args>
-                void broadcast(void (network::observer<Server>:: *const f)(std::weak_ptr<Server>, Args ...),
-                               Args ...args) {
+                void broadcast(void (network::observer<Server>:: *const f)(std::weak_ptr<Server>, typename std::remove_reference<Args>::type ...),
+                               Args &&...args) {
                     auto _this = std::weak_ptr<Server>(std::dynamic_pointer_cast<Server>(shared_from_this()));
                     for (auto &o : observers_) {
                         if (auto _o = dynamic_cast<network::observer<Server> *>(o.get())) {
-                            thread(f, _o, _this, args...).detach();
+                            thread(f, _o, _this, std::forward<Args>(args)...).detach();
                         }
                     }
                 }
