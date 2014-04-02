@@ -1,8 +1,8 @@
-# msr-thread
+# MSR.Thread
 
 msr-thread just contains msr-thread-pool now, I will add more in the next few months.
 
-## msr-thread-pool
+## MSR.Thread.ThreadPool
 
 ###### A simple c++ thread pool based on boost::thread. (header only)
 
