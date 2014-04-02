@@ -19,28 +19,31 @@ namespace msr {
             using base = server_base;
             using connection = network::connection<protocol::ip::tcp>;
             using observer = network::observer<self>;
+            using mutex = boost::shared_mutex;
+            using readwrite_lock = boost::unique_lock<mutex>;
+            using readonly_lock = boost::shared_lock<mutex>;
         public:
             server(const protocol::ip::tcp::endpoint &_endpoint):
-                acceptor_(service_, _endpoint, true) {
-                for (unsigned int i = 0; i < pool_.size(); i++) {
-                    pool_.post([this]() {
-                        boost::asio::io_service::work work(service_);
-                        service_.run();
-                    });
-                }
+            endpoint_(_endpoint), acceptor_(service_, _endpoint, true) {
+                service_.stop();
             }
         public:
             void accept();
             void send(std::shared_ptr<connection> c, const data &d);
             void receive(std::shared_ptr<connection> c, const std::size_t &size);
+            void close(std::shared_ptr<connection> c);
+            void cancel(std::shared_ptr<connection> c);
+            void run();
+            void shutdown();
+            bool is_running() const;
+            bool is_shutdown() const;
         public:
-            ~server() {
-                service_.stop();
-            }
+            ~server();
         private:
             thread_pool pool_;
             boost::asio::io_service service_;
             protocol::ip::tcp::acceptor acceptor_;
+            protocol::ip::tcp::endpoint endpoint_;
             std::list<std::shared_ptr<connection>> connections_;
         };
     }
