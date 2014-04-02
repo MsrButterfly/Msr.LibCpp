@@ -35,7 +35,7 @@ namespace msr {
         void run() {
             readwrite_lock lock(thread_mutex_);
             if (!stopped()) {
-                throw exception("Thread pool is already running.");
+                return;
             }
             loop_ = true;
             for (unsigned int i = 0; i < size_; i++) {
@@ -46,10 +46,10 @@ namespace msr {
         void stop() {
             readwrite_lock thread_lock(thread_mutex_);
             if (unsafe_this_thread_is_in()) {
-                throw exception("Thread is trying to join itself.");
+                throw exception("stop(): Thread is trying to join itself.");
             }
             if (stopped()) {
-                throw exception("Thread pool is already stopped.");
+                return;
             }
             {
                 readwrite_lock task_lock(task_mutex_);
@@ -81,6 +81,9 @@ namespace msr {
         }
         void wait() const {
             readonly_lock lock(task_mutex_);
+            if (unsafe_this_thread_is_in()) {
+                throw exception("wait(): Thread is trying to wait itself.");
+            }
             if (!unsafe_task_queue_is_empty()) {
                 task_queue_is_empty_.wait(lock);
             }
@@ -99,7 +102,7 @@ namespace msr {
         }
         void resize(const std::size_t size) {
             if (!stopped()) {
-                throw exception("Trying to resize a running thread pool.");
+                throw exception("resize(): Trying to resize a running thread pool.");
             }
             size_ = size;
         }
