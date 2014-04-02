@@ -1,3 +1,4 @@
-# msr-network
+# MSR.Network
 
-Unavailable now. I will add TCP/IP implementation in the next few months. (based on boost::asio)
+A simple network library based on Boost.Asio, Boost.Signals2 & MSR.Thread. (signal/slot i.e. observer model)
+Now only tcp/ip server implementation. I will add more in the next few months.
