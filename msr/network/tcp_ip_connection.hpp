@@ -24,7 +24,7 @@ namespace msr {
         public:
             connection(boost::asio::io_service &io_service):
                 socket_(io_service) {}
-            protocol::ip::tcp::socket::endpoint_type remote_endpoint() const {
+            protocol::ip::tcp::endpoint remote_endpoint() const {
                 return socket_.remote_endpoint();
             }
         private:

@@ -16,12 +16,19 @@ namespace msr {
             using base = observer_base;
             using server = network::server<protocol::ip::tcp>;
             using connection = server::connection;
+            using server_ptr = std::weak_ptr<server>;
+            using connection_ptr = std::shared_ptr<connection>;
+            using error = network::error;
+            using data = network::data;
+            using endpoint = protocol::ip::tcp::endpoint;
         public:
-            virtual void did_accept(std::weak_ptr<server> s, std::shared_ptr<connection> c, error e) = 0;
-            virtual void did_send(std::weak_ptr<server> s, std::shared_ptr<connection> c, error e, data d) = 0;
-            virtual void did_receive(std::weak_ptr<server> s, std::shared_ptr<connection> c, error e, data d) = 0;
-            virtual void did_run(std::weak_ptr<server> s, error e) = 0;
-            virtual void did_shutdown(std::weak_ptr<server> s, error e) = 0;
+            virtual void server_did_accept(server_ptr s, connection_ptr c, error e) = 0;
+            virtual void server_did_send(server_ptr s, connection_ptr c, error e, data d) = 0;
+            virtual void server_did_receive(server_ptr s, connection_ptr c, error e, data d) = 0;
+            virtual void server_did_disconnect(server_ptr s, endpoint p, error e) = 0;
+            virtual void server_did_cancel(server_ptr s, connection_ptr c, error e) = 0;
+            virtual void server_did_run(server_ptr s, error e) = 0;
+            virtual void server_did_shutdown(server_ptr s, error e) = 0;
         public:
             ~observer() {}
         };

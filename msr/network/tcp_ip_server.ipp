@@ -11,38 +11,50 @@ namespace msr {
                 } else {
                     next_connection = nullptr;
                 }
-                broadcast(&observer::did_accept, next_connection, e);
+                broadcast(&observer::server_did_accept, next_connection, e);
             });
         }
         void server<protocol::ip::tcp>::send(std::shared_ptr<connection> c, const data &d) {
             if (!c) {
-                throw exception("Null connection.");
+                return;
             }
             auto data_ = std::make_shared<data>(d);
             boost::asio::async_write(c->socket_, data_->const_buffer(), [c, this, data_](error e, std::size_t size) {
-                broadcast(&observer::did_send, c, e, *data_);
+                broadcast(&observer::server_did_send, c, e, *data_);
             });
         }
         void server<protocol::ip::tcp>::receive(std::shared_ptr<connection> c, const std::size_t &size) {
             if (!c) {
-                throw exception("Null connection.");
+                return;
             }
             auto data_ = std::make_shared<data>(size);
             boost::asio::async_read(c->socket_, data_->mutable_buffer(), [c, this, data_](error e, std::size_t size) {
-                broadcast(&observer::did_receive, c, e, *data_);
+                broadcast(&observer::server_did_receive, c, e, *data_);
             });
         }
         void server<protocol::ip::tcp>::cancel(std::shared_ptr<connection> c) {
-            if (!c) {
-                throw exception("Null connection.");
+            error e;
+            if (c) {
+                c->socket_.cancel(e);
             }
-            c->socket_.cancel();
+            service_.post([this, c, e]() {
+                broadcast(&observer::server_did_cancel, c, e);
+            });
         }
-        void server<protocol::ip::tcp>::close(std::shared_ptr<connection> c) {
+        void server<protocol::ip::tcp>::disconnect(std::shared_ptr<connection> c) {
             if (!c) {
-                throw exception("Null connection.");
+                return;
             }
-            c->socket_.close();
+            connections_.remove(c);
+            error e;
+            protocol::ip::tcp::endpoint p;
+            try {
+                p = c->remote_endpoint();
+            } catch (...) {}
+            c->socket_.close(e);
+            service_.post([this, e, p]() {
+                broadcast(&observer::server_did_disconnect, p, e);
+            });
         }
         void server<protocol::ip::tcp>::run() {
             if (!is_running()) {
@@ -58,7 +70,9 @@ namespace msr {
             if (!acceptor_.is_open()) {
                 acceptor_.open(endpoint_.protocol(), e);
             }
-            broadcast(&observer::did_run, e);
+            service_.post([this, e]() {
+                broadcast(&observer::server_did_run, e);
+            });
         }
         void server<protocol::ip::tcp>::shutdown() {
             for (auto &c : connections_) {
@@ -74,7 +88,9 @@ namespace msr {
             if (acceptor_.is_open()) {
                 acceptor_.close(e);
             }
-            broadcast(&observer::did_shutdown, e);
+            service_.post([this, e]() {
+                broadcast(&observer::server_did_shutdown, e);
+            });
         }
         bool server<protocol::ip::tcp>::is_running() const {
             return !service_.stopped();

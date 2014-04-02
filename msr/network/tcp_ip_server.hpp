@@ -31,7 +31,7 @@ namespace msr {
             void accept();
             void send(std::shared_ptr<connection> c, const data &d);
             void receive(std::shared_ptr<connection> c, const std::size_t &size);
-            void close(std::shared_ptr<connection> c);
+            void disconnect(std::shared_ptr<connection> c);
             void cancel(std::shared_ptr<connection> c);
             void run();
             void shutdown();
