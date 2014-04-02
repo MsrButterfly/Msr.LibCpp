@@ -8,6 +8,7 @@
 #include <msr/network/server_exception.hpp>
 #include <msr/network/server_observer.hpp>
 #include <msr/thread.hpp>
+#include <boost/signals2.hpp>
 
 namespace msr {
     namespace network {
@@ -33,11 +34,13 @@ namespace msr {
                 void broadcast(void (network::observer<Server>:: *const f)(std::weak_ptr<Server>, typename std::remove_reference<Args>::type ...),
                                Args &&...args) {
                     auto _this = std::weak_ptr<Server>(std::dynamic_pointer_cast<Server>(shared_from_this()));
+                    boost::signals2::signal<void ()> signal;
                     for (auto &o : observers_) {
                         if (auto _o = dynamic_cast<network::observer<Server> *>(o.get())) {
-                            thread(f, _o, _this, std::forward<Args>(args)...).detach();
+                            signal.connect(boost::bind(f, _o, _this, std::forward<Args>(args)...));
                         }
                     }
+                    signal();
                 }
             public:
                 virtual ~server_base() {}
