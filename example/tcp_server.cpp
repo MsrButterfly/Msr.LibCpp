@@ -21,7 +21,6 @@ public:
             s.lock()->accept();
             s.lock()->send(c, "Welcome to mashiroLab!!!");
             s.lock()->receive(c, 100);
-            std::basic_string<char> s;
         }
     }
     void did_send(std::weak_ptr<server> s, std::shared_ptr<connection> c, error e, data d) {
