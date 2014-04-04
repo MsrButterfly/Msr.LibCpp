@@ -5,9 +5,8 @@
 #include <memory>
 #include <boost/utility.hpp>
 #include <msr/network/detail/connection_base.hpp>
-#include <msr/network/server_exception.hpp>
 #include <msr/network/server_observer.hpp>
-#include <msr/thread.hpp>
+#include <msr/network/server_exception.hpp>
 #include <boost/signals2.hpp>
 
 namespace msr {
@@ -16,7 +15,6 @@ namespace msr {
             class server_base: boost::noncopyable, public std::enable_shared_from_this<server_base> {
             public:
                 using self = server_base;
-                using connection = connection_base;
                 using observer = observer_base;
                 using exception = server_exception;
             public:
@@ -24,10 +22,8 @@ namespace msr {
             public:
                 template <class Observer, class ...Args>
                 typename boost::enable_if<is_observer<Observer>,
-                std::shared_ptr<Observer>>::type create_observer(Args &&...args) {
-                    auto o = std::make_shared<Observer>(std::forward<Args>(args)...);
-                    observers_.insert(o);
-                    return o;
+                void>::type create_observer(Args &&...args) {
+                    observers_.push_back(std::make_shared<Observer>(std::forward<Args>(args)...));
                 }
             protected:
                 template <class Server, class ...Args>
@@ -44,12 +40,11 @@ namespace msr {
                 }
             public:
                 virtual ~server_base() {}
-            protected:
-                std::list<std::shared_ptr<connection>> connections_;
             private:
-                std::set<std::shared_ptr<observer>> observers_;
+                std::list<std::shared_ptr<observer>> observers_;
             };
         }
     }
 }
+
 #endif

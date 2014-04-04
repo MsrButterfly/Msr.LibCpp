@@ -3,7 +3,6 @@
 
 #include <memory>
 #include <msr/network/protocol.hpp>
-#include <msr/network/server_observer.hpp>
 #include <msr/network/detail/server_base.hpp>
 
 namespace msr {

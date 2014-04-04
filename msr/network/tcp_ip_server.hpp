@@ -22,17 +22,15 @@ namespace msr {
             using mutex = boost::shared_mutex;
             using readwrite_lock = boost::unique_lock<mutex>;
             using readonly_lock = boost::shared_lock<mutex>;
+            using connection_ptr = std::shared_ptr<connection>;
         public:
-            server(const protocol::ip::tcp::endpoint &_endpoint):
-            endpoint_(_endpoint), acceptor_(service_, _endpoint, true) {
-                service_.stop();
-            }
+            server(const protocol::ip::tcp::endpoint &endpoint);
         public:
             void accept();
-            void send(std::shared_ptr<connection> c, const data &d);
-            void receive(std::shared_ptr<connection> c, const std::size_t &size);
-            void disconnect(std::shared_ptr<connection> c);
-            void cancel(std::shared_ptr<connection> c);
+            void send(connection_ptr c, data d);
+            void receive(connection_ptr c, std::size_t size);
+            void disconnect(connection_ptr c);
+            void cancel(connection_ptr c);
             void run();
             void shutdown();
             bool is_running() const;
@@ -44,7 +42,7 @@ namespace msr {
             boost::asio::io_service service_;
             protocol::ip::tcp::acceptor acceptor_;
             protocol::ip::tcp::endpoint endpoint_;
-            std::list<std::shared_ptr<connection>> connections_;
+            std::list<connection_ptr> connections_;
         };
     }
 }

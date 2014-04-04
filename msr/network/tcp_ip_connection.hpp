@@ -6,6 +6,7 @@
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <msr/network/server.hpp>
+#include <msr/network/client.hpp>
 #include <msr/network/protocol.hpp>
 #include <msr/network/connection.hpp>
 
@@ -14,6 +15,7 @@ namespace msr {
         template <>
         class connection<protocol::ip::tcp>: public detail::connection_base {
             friend server<protocol::ip::tcp>;
+            friend client<protocol::ip::tcp>;
         private:
             using mutex = boost::shared_mutex;
             using readonly_lock = boost::shared_lock<mutex>;
