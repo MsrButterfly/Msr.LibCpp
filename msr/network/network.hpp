@@ -12,6 +12,7 @@
 #include <msr/network/detail/observer_base.hpp>
 #include <msr/network/detail/server_base.hpp>
 #include <msr/network/error.hpp>
+#include <msr/network/exception.hpp>
 #include <msr/network/observer.hpp>
 #include <msr/network/protocol.hpp>
 #include <msr/network/server.hpp>

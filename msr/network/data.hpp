@@ -136,18 +136,20 @@ namespace msr {
             T get() const {
                 auto t_size = sizeof(T) / sizeof(unit_t);
                 if (t_size != size_) {
-                    throw exception(std::string("get<T>(): Size not matched. (sizeof(T) = ") +
+                    throw exception(1,
+                                    (std::string("get<T>(): Size not matched. (sizeof(T) = ") +
                                     boost::lexical_cast<std::string>(t_size) + ", size = " +
-                                    boost::lexical_cast<std::string>(size_));
+                                    boost::lexical_cast<std::string>(size_)).c_str());
                 }
                 return *static_cast<T *>(static_cast<void *>(data_));
             }
             template <class T, size_t N>
             std::array<T, N> get() const {
                 if (sizeof(T) * N / sizeof(unit_t) != size_) {
-                    throw exception(std::string("get<T, N>(): Size not matched. (N = ") +
-                    boost::lexical_cast<std::string>(N) + ", size = " +
-                    boost::lexical_cast<std::string>(size_));
+                    throw exception(2,
+                                    (std::string("get<T, N>(): Size not matched. (N = ") +
+                                    boost::lexical_cast<std::string>(N) + ", size = " +
+                                    boost::lexical_cast<std::string>(size_)).c_str());
                 }
                 std::array<T, N> a;
                 auto data__ = static_cast<T *>(static_cast<void *>(data_));
