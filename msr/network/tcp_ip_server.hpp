@@ -47,4 +47,6 @@ namespace msr {
     }
 }
 
+#include <msr/network/tcp_ip_server_observer.hpp>
+
 #endif
