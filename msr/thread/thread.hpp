@@ -8,4 +8,8 @@ namespace msr {
     namespace this_thread = boost::this_thread;
 }
 
+#include <msr/thread/detail/debug.hpp>
+#include <msr/thread/thread_pool.hpp>
+#include <msr/thread/thread_pool_exception.hpp>
+
 #endif

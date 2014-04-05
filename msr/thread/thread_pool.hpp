@@ -12,8 +12,8 @@
 #include <boost/thread.hpp>
 #include <boost/utility.hpp>
 #include <msr/thread/detail/debug.hpp>
-#include <msr/thread/thread_pool_exception.hpp>
 #include <msr/thread/thread.hpp>
+#include <msr/thread/thread_pool_exception.hpp>
 
 namespace msr {
     class thread_pool: boost::noncopyable {
@@ -181,9 +181,7 @@ namespace msr {
         }
     public:
         virtual ~thread_pool() {
-            if (!stopped()) {
-                stop();
-            }
+            stop();
         }
     private:
         std::atomic<bool> stopped_;
