@@ -4,8 +4,8 @@
 #include <memory>
 #include <boost/asio.hpp>
 #include <msr/network/client_observer.hpp>
-#include <msr/network/tcp_ip_client.hpp>
 #include <msr/network/data.hpp>
+#include <msr/network/tcp_ip_client.hpp>
 
 namespace msr {
     namespace network {

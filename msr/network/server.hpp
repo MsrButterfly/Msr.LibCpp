@@ -1,8 +1,7 @@
 #ifndef MSR_NETWORK_SERVER_HPP_INCLUDED
 #define MSR_NETWORK_SERVER_HPP_INCLUDED
 
-#include <memory>
-#include <msr/network/protocol.hpp>
+#include <boost/utility.hpp>
 #include <msr/network/detail/server_base.hpp>
 
 namespace msr {

@@ -1,7 +1,6 @@
 #ifndef MSR_NETWORK_OBSERVER_HPP_INCLUDED
 #define MSR_NETWORK_OBSERVER_HPP_INCLUDED
 
-#include <memory>
 #include <boost/utility.hpp>
 #include <msr/network/detail/observer_base.hpp>
 

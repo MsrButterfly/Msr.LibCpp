@@ -3,9 +3,9 @@
 
 #include <memory>
 #include <boost/asio.hpp>
+#include <msr/network/data.hpp>
 #include <msr/network/server_observer.hpp>
 #include <msr/network/tcp_ip_server.hpp>
-#include <msr/network/data.hpp>
 
 namespace msr {
     namespace network {

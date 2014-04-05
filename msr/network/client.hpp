@@ -1,8 +1,6 @@
 #ifndef MSR_NETWORK_CLIENT_HPP_INCLUDED
 #define MSR_NETWORK_CLIENT_HPP_INCLUDED
 
-#include <memory>
-#include <msr/network/protocol.hpp>
 #include <msr/network/detail/client_base.hpp>
 
 namespace msr {

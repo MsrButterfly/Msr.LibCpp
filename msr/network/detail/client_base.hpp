@@ -3,11 +3,11 @@
 
 #include <list>
 #include <memory>
-#include <boost/utility.hpp>
-#include <msr/network/detail/connection_base.hpp>
-#include <msr/network/client_observer.hpp>
-#include <msr/network/client_exception.hpp>
 #include <boost/signals2.hpp>
+#include <boost/utility.hpp>
+#include <msr/network/client_exception.hpp>
+#include <msr/network/client_observer.hpp>
+#include <msr/network/detail/connection_base.hpp>
 
 namespace msr {
     namespace network {

@@ -4,11 +4,11 @@
 #include <list>
 #include <memory>
 #include <boost/asio.hpp>
-#include <msr/network/protocol.hpp>
 #include <msr/network/client.hpp>
+#include <msr/network/data.hpp>
+#include <msr/network/protocol.hpp>
 #include <msr/network/tcp_ip_connection.hpp>
 #include <msr/thread.hpp>
-#include <msr/network/data.hpp>
 
 namespace msr {
     namespace network {

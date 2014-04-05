@@ -2,14 +2,13 @@
 #define MSR_NETWORK_DATA_HPP_INCLUDED
 
 #include <array>
-#include <vector>
+#include <cstdlib>
 #include <string>
-#include <typeinfo>
-#include <memory>
+#include <vector>
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
-#include <msr/network/data_exception.hpp>
 #include <boost/lexical_cast.hpp>
+#include <msr/network/data_exception.hpp>
 
 namespace msr {
     namespace network {

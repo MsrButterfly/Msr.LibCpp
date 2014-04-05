@@ -1,7 +1,6 @@
 #ifndef MSR_NETWORK_DETAIL_OBSERVER_BASE_HPP_INCLUDED
 #define MSR_NETWORK_DETAIL_OBSERVER_BASE_HPP_INCLUDED
 
-#include <memory>
 #include <boost/utility.hpp>
 
 namespace msr {

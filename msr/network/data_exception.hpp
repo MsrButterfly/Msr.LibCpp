@@ -1,8 +1,8 @@
 #ifndef MSR_NETWORK_DATA_EXCEPTION_HPP
 #define MSR_NETWORK_DATA_EXCEPTION_HPP
 
-#include <string>
 #include <exception>
+#include <string>
 #include <msr/compatibility/exception.hpp>
 
 namespace msr {

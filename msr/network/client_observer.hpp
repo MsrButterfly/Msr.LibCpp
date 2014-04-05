@@ -1,9 +1,7 @@
 #ifndef MSR_NETWORK_CLIENT_OBSERVER_HPP_INCLUDED
 #define MSR_NETWORK_CLIENT_OBSERVER_HPP_INCLUDED
 
-#include <memory>
-#include <msr/network/connection.hpp>
-#include <msr/network/protocol.hpp>
+#include <msr/network/client.hpp>
 #include <msr/network/observer.hpp>
 
 namespace msr {
