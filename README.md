@@ -1,4 +1,4 @@
-msr-cpp-libraries
+Msr Cpp Libraries
 =================
 
 My personal c++ libraries.
