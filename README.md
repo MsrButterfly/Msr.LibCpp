@@ -1,4 +1,4 @@
-Msr Cpp Libraries
+Msr.LibC++
 =================
 
 My personal c++ libraries.
