@@ -13,3 +13,5 @@ There is a small bug in boost 1.55.0 on clang, which can be fixed with this:
 https://github.com/boostorg/atomic/commit/6bb71fdd8f7cc346d90fb14beb38b7297fc1ffd9
 
 (You can just remove all assignments to the variable of storage_type. I think it's safe to ignore memset initialization.)
+
+http://msrlab.org/?p=56
