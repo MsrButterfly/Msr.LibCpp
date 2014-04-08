@@ -30,6 +30,14 @@ namespace msr {
             virtual void server_did_cancel(server_weak_ptr s, connection_ptr c, error e) = 0;
             virtual void server_did_run(server_weak_ptr s, error e) = 0;
             virtual void server_did_shutdown(server_weak_ptr s, error e) = 0;
+        protected:
+            server_shared_ptr lock(server_weak_ptr s) {
+                try {
+                    return s.lock();
+                } catch (...) {
+                    return nullptr;
+                }
+            }
         public:
             ~observer() {}
         };

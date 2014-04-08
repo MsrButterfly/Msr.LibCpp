@@ -19,75 +19,55 @@ public:
         server_has_been_shutdown_(server_has_been_shutdown) {}
 public:
     void server_did_accept(server_weak_ptr s, connection_ptr c, error e) override {
-        server_shared_ptr server_;
-        try {
-            server_ = s.lock();
-        } catch (...) {
-            return;
+        if (auto server_ = lock(s)) {
+            if (e) {
+                server_->disconnect(c);
+                return;
+            }
+            printf("[Accepted] %s\n", c->remote_endpoint().address().to_string().c_str());
+            server_->accept();
+            server_->send(c, "Welcome to mashiroLab!!!");
+            server_->receive(c, sizeof(information));
         }
-        if (e) {
-            server_->disconnect(c);
-            return;
-        }
-        printf("[Accepted] %s\n", c->remote_endpoint().address().to_string().c_str());
-        server_->accept();
-        server_->send(c, "Welcome to mashiroLab!!!");
-        server_->receive(c, sizeof(information));
     }
     void server_did_send(server_weak_ptr s, connection_ptr c, error e, data d) override {
-        server_shared_ptr server_;
-        try {
-            server_ = s.lock();
-        } catch (...) {
-            return;
-        }
-        if (e) {
-            server_->disconnect(c);
-            return;
-        }
-        if (d.size() == sizeof("Welcome to mashiroLab!!!")) {
-            printf("[Sent] %s: %s\n", c->remote_endpoint().address().to_string().c_str(), d.get<char, 25>().data());
+        if (auto server_ = lock(s)) {
+            if (e) {
+                server_->disconnect(c);
+                return;
+            }
+            if (d.size() == sizeof("Welcome to mashiroLab!!!")) {
+                printf("[Sent] %s: %s\n", c->remote_endpoint().address().to_string().c_str(), d.get<char, 25>().data());
+            }
         }
     }
     void server_did_receive(server_weak_ptr s, connection_ptr c, error e, data d) override {
-        server_shared_ptr server_;
-        try {
-            server_ = s.lock();
-        } catch (...) {
-            return;
+        if (auto server_ = lock(s)) {
+            if (e) {
+                server_->disconnect(c);
+                return;
+            }
+            auto i = d.get<information>();
+            printf("[Received] %s: Name: %s, Age: %d\n", c->remote_endpoint().address().to_string().c_str(), i.name, i.age);
+            server_->receive(c, sizeof(information));
         }
-        if (e) {
-            server_->disconnect(c);
-            return;
-        }
-        auto i = d.get<information>();
-        printf("[Received] %s: Name: %s, Age: %d\n", c->remote_endpoint().address().to_string().c_str(), i.name, i.age);
-        server_->receive(c, sizeof(information));
-    } 
+    }
     void server_did_disconnect(server_weak_ptr s, endpoint p, error e) override {
         printf("[Disconnected] %s\n", p.address().to_string().c_str());
     }
     void server_did_cancel(server_weak_ptr s, connection_ptr c, error e) override {
-        server_shared_ptr server_;
-        try {
-            server_ = s.lock();
-        } catch (...) {
-            return;
-        }
-        if (e) {
-            server_->disconnect(c);
-            return;
+        if (auto server_ = lock(s)) {
+            if (e) {
+                server_->disconnect(c);
+                return;
+            }
         }
     }
     void server_did_run(server_weak_ptr s, error e) override {
-        server_shared_ptr server_;
-        try {
-            server_ = s.lock();
-        } catch (...) {
-            return;
+        if (auto server_ = lock(s)) {
+            printf("[Running] %s\n", e.message().c_str());
+            server_->accept();
         }
-        printf("[Running] %s\n", e.message().c_str());
-        server_->accept();
     }
     void server_did_shutdown(server_weak_ptr s, error e) override {
         printf("[Shutdown] %s\n", e.message().c_str());
