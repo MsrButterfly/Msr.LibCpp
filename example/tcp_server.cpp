@@ -2,7 +2,8 @@
 #include <msr/network.hpp>
 
 using namespace std;
-using namespace msr::network;
+using namespace msr;
+using namespace network;
 using protocol::ip::tcp;
 
 struct information {
@@ -19,7 +20,7 @@ public:
         server_has_been_shutdown_(server_has_been_shutdown) {}
 public:
     void server_did_accept(server_weak_ptr s, connection_ptr c, error e) override {
-        if (auto server_ = lock(s)) {
+        if (auto server_ = try_lock(s)) {
             if (e) {
                 server_->disconnect(c);
                 return;
@@ -31,7 +32,7 @@ public:
         }
     }
     void server_did_send(server_weak_ptr s, connection_ptr c, error e, data d) override {
-        if (auto server_ = lock(s)) {
+        if (auto server_ = try_lock(s)) {
             if (e) {
                 server_->disconnect(c);
                 return;
@@ -42,7 +43,7 @@ public:
         }
     }
     void server_did_receive(server_weak_ptr s, connection_ptr c, error e, data d) override {
-        if (auto server_ = lock(s)) {
+        if (auto server_ = try_lock(s)) {
             if (e) {
                 server_->disconnect(c);
                 return;
@@ -56,7 +57,7 @@ public:
         printf("[Disconnected] %s\n", p.address().to_string().c_str());
     }
     void server_did_cancel(server_weak_ptr s, connection_ptr c, error e) override {
-        if (auto server_ = lock(s)) {
+        if (auto server_ = try_lock(s)) {
             if (e) {
                 server_->disconnect(c);
                 return;
@@ -64,7 +65,7 @@ public:
         }
     }
     void server_did_run(server_weak_ptr s, error e) override {
-        if (auto server_ = lock(s)) {
+        if (auto server_ = try_lock(s)) {
             printf("[Running] %s\n", e.message().c_str());
             server_->accept();
         }
