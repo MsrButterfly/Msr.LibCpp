@@ -1,5 +1,6 @@
 #include <iostream>
 #include <msr/network.hpp>
+#include <msr/memory.hpp>
 
 using namespace std;
 using namespace msr;
