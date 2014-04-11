@@ -14,4 +14,4 @@ https://github.com/boostorg/atomic/commit/6bb71fdd8f7cc346d90fb14beb38b7297fc1ff
 
 (You can just remove all assignments to the variable of storage_type. I think it's safe to ignore memset initialization.)
 
-http://msrlab.org/?p=56
+http://blog.msrlab.org/english/introducing-msr-thread-threadpool/
