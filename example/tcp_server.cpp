@@ -28,7 +28,7 @@ public:
             }
             printf("[Accepted] %s\n", c->remote_endpoint().address().to_string().c_str());
             server_->accept();
-            server_->send(c, "Welcome to mashiroLab!!!");
+            server_->send(c, "Welcome to MsrLab!!!");
             server_->receive(c, sizeof(information));
         }
     }
@@ -38,7 +38,7 @@ public:
                 server_->disconnect(c);
                 return;
             }
-            if (d.size() == sizeof("Welcome to mashiroLab!!!")) {
+            if (d.size() == sizeof("Welcome to MsrLab!!!")) {
                 printf("[Sent] %s: %s\n", c->remote_endpoint().address().to_string().c_str(), d.get<char, 25>().data());
             }
         }
