@@ -3,8 +3,8 @@
 #include <msr/memory.hpp>
 
 struct information {
-    char name[10] = "Darren";
-    uint16_t age = 19;
+    char name[10] = "Airi";
+    uint16_t age = 18;
 };
 
 using namespace std;
