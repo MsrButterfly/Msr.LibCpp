@@ -27,7 +27,7 @@ public:
                 return;
             }
             printf("[Connected] %s\n", n->remote_endpoint().address().to_string().c_str());
-            client_->receive(n, 25);
+            client_->receive(n, 21);
         }
     }
     void client_did_send(client_weak_ptr c, connection_ptr n, error e, data d) override {
@@ -65,7 +65,7 @@ public:
     void client_did_run(client_weak_ptr c) override {
         if (auto client_ = try_lock(c)) {
             printf("[Running]\n");
-            client_->connect("localhost", 9999);
+            client_->connect("msrlab.org", 9999);
         }
     }
     void client_did_shutdown(client_weak_ptr c) override {

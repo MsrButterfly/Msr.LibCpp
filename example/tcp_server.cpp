@@ -39,7 +39,7 @@ public:
                 return;
             }
             if (d.size() == sizeof("Welcome to MsrLab!!!")) {
-                printf("[Sent] %s: %s\n", c->remote_endpoint().address().to_string().c_str(), d.get<char, 25>().data());
+                printf("[Sent] %s: %s\n", c->remote_endpoint().address().to_string().c_str(), d.get<char, 21>().data());
             }
         }
     }
