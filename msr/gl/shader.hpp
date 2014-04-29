@@ -33,7 +33,7 @@ namespace msr {
             void set_type(const shader_type &type);
             bool compile();
             const bool &is_compiled() const;
-            const std::string &last_compile_log() const;
+            std::string last_compile_log() const;
         public:
             virtual ~shader();
         private:
@@ -41,7 +41,6 @@ namespace msr {
             bool compiled_;
             std::string source_;
             shader_type shader_type_;
-            std::string last_compile_log_;
         };
     }
 }

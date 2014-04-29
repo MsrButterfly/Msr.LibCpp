@@ -58,6 +58,14 @@ namespace msr {
             glCompileShader(shader_);
             GLint result;
             glGetShaderiv(shader_, GL_COMPILE_STATUS, &result);
+            compiled_ = (result == GL_TRUE);
+            return compiled_;
+        }
+        const bool &shader::is_compiled() const {
+            return compiled_;
+        }
+        std::string shader::last_compile_log() const {
+            std::string last_compile_log_;
             GLint length;
             glGetShaderiv(shader_, GL_INFO_LOG_LENGTH, &length);
             char *log = new char[length]; // it also works when length == 0
@@ -65,13 +73,6 @@ namespace msr {
             glGetShaderInfoLog(shader_, length, &written, log);
             last_compile_log_ = log;
             delete[] log;
-            compiled_ = (result == GL_TRUE);
-            return compiled_;
-        }
-        const bool &shader::is_compiled() const {
-            return compiled_;
-        }
-        const std::string &shader::last_compile_log() const {
             return last_compile_log_;
         }
         shader::~shader() {
