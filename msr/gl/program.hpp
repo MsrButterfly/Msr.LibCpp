@@ -26,8 +26,6 @@ namespace msr {
         private:
             GLuint program_;
             bool linked_;
-            std::map<std::string, unsigned int> ins_;
-            std::map<std::string, unsigned int> outs_;
         };
     }
 }

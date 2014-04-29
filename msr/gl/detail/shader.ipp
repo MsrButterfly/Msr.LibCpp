@@ -68,11 +68,11 @@ namespace msr {
             std::string last_compile_log_;
             GLint length;
             glGetShaderiv(shader_, GL_INFO_LOG_LENGTH, &length);
-            char *log = new char[length]; // it also works when length == 0
+            char *log = new char [length]; // it also works when length == 0
             GLsizei written;
             glGetShaderInfoLog(shader_, length, &written, log);
             last_compile_log_ = log;
-            delete[] log;
+            delete []log;
             return last_compile_log_;
         }
         shader::~shader() {

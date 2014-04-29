@@ -14,15 +14,11 @@ namespace msr {
         }
         const bool &program::link(const std::vector<std::string> &ins,
                                   const std::vector<std::string> &outs) {
-            ins_.clear();
-            outs_.clear();
             for (unsigned int i = 0; i < ins.size(); i++) {
                 glBindAttribLocation(program_, i, ins[i].c_str());
-                ins_[ins[i]] = i;
             }
             for (unsigned int i = 0; i < outs.size(); i++) {
                 glBindFragDataLocation(program_, i, outs[i].c_str());
-                outs_[outs[i]] = i;
             }
             glLinkProgram(program_);
             GLint status;
