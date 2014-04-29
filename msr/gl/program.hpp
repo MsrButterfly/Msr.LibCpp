@@ -16,8 +16,8 @@ namespace msr {
         public:
             void attach(shader &shader_);
             void detach(shader &shader_);
-            const bool &link(const std::vector<std::string> &ins,
-                             const std::vector<std::string> &outs);
+            const bool &link(const std::vector<std::string> &ins = {},
+                             const std::vector<std::string> &outs = {});
             const bool &is_linked() const;
             void use();
             std::string last_link_log() const;
