@@ -1,6 +1,7 @@
 #ifndef MSR_THREAD_DETAIL_THREAD_POOL_EXCEPTION_INCLUDED
 #define MSR_THREAD_DETAIL_THREAD_POOL_EXCEPTION_INCLUDED
 
+#include <cstdint>
 #include <msr/exception.hpp>
 
 namespace msr {
