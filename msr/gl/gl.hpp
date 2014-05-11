@@ -4,5 +4,6 @@
 #include <msr/gl/shader.hpp>
 #include <msr/gl/program.hpp>
 #include <msr/gl/init.hpp>
+#include <msr/gl/output.hpp>
 
 #endif
