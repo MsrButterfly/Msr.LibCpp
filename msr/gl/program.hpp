@@ -21,6 +21,7 @@ namespace msr {
             const bool &is_linked() const;
             void use();
             std::string last_link_log() const;
+            const GLuint &native_handle() const;
         public:
             virtual ~program();
         private:

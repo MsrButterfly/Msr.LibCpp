@@ -43,6 +43,9 @@ namespace msr {
             delete[] log;
             return last_link_log_;
         }
+        const GLuint &program::native_handle() const {
+            return program_;
+        }
         program::~program() {
             glDeleteProgram(program_);
         }

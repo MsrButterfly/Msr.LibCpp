@@ -34,10 +34,11 @@ namespace msr {
             bool compile();
             const bool &is_compiled() const;
             std::string last_compile_log() const;
+            const GLuint &native_handle() const;
         public:
             virtual ~shader();
         private:
-            GLint shader_;
+            GLuint shader_;
             bool compiled_;
             std::string source_;
             shader_type shader_type_;

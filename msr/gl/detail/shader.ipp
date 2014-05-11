@@ -75,6 +75,9 @@ namespace msr {
             delete []log;
             return last_compile_log_;
         }
+        const GLuint &shader::native_handle() const {
+            return shader_;
+        }
         shader::~shader() {
             glDeleteShader(shader_);
         }
