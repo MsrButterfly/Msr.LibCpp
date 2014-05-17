@@ -6,11 +6,11 @@
 #include <iomanip>
 #include <glm/glm.hpp>
 
-#define MSR_GL_VECTOR_STREAM_OUTPUT_FUNCTION(X)    \
+#define MSR_GL_VECTOR_STREAM_OUTPUT_FUNCTION(x)    \
 template <class Char, class T, glm::precision P>   \
 std::basic_ostream<Char> &operator<<(              \
   std::basic_ostream<Char> &os,                    \
-  const glm::detail::tvec##X<T, P> &v) {           \
+  const glm::detail::tvec##x<T, P> &v) {           \
     os << '(';                                     \
     for (int i = 0; i < v.length(); i++) {         \
         os << v[i];                                \
@@ -22,11 +22,11 @@ std::basic_ostream<Char> &operator<<(              \
     return os;                                     \
 }
 
-#define MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION(X, Y) \
+#define MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION(a, b) \
 template <class Char, class T, glm::precision P>   \
 std::basic_ostream<Char> &operator<<(              \
   std::basic_ostream<Char> &os,                    \
-  const glm::detail::tmat##X##x##Y<T, P> &m) {     \
+  const glm::detail::tmat##a##x##b<T, P> &m) {     \
     using std::setw;                               \
     int width = 0;                                 \
     for (int i = 0; i < m.length(); i++) {         \
@@ -80,5 +80,9 @@ MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION(4, 3)
 MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION(4, 4)
 
 #endif
+
+#undef MSR_GL_VECTOR_STREAM_OUTPUT_FUNCTION
+
+#undef MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION
 
 #endif

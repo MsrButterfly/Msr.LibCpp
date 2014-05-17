@@ -1,6 +1,8 @@
 #ifndef MSR_GL_DETAIL_PROGRAM_IPP_INCLUDED
 #define MSR_GL_DETAIL_PROGRAM_IPP_INCLUDED
 
+#include <boost/utility.hpp>
+
 namespace msr {
     namespace gl {
         program::program() {
@@ -49,6 +51,64 @@ namespace msr {
         program::~program() {
             glDeleteProgram(program_);
         }
+        
+#       define MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_NUM(glm_t, gl_t) \
+        void program::set_uniform(const std::string &name,                \
+                                  const glm::glm_t &n) {                  \
+            auto location = glGetUniformLocation(program_, name.c_str()); \
+            glUniform##gl_t(location, n);                                 \
+        }
+        
+#       define MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_VEC(glm_t, gl_t) \
+        void program::set_uniform(const std::string &name,                \
+                                  const glm::glm_t &v) {                  \
+            auto location = glGetUniformLocation(program_, name.c_str()); \
+            glUniform##gl_t##v(location, 1, &v[0]);                       \
+        }
+        
+#       define MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_MAT(glm_t, gl_t) \
+        void program::set_uniform(const std::string &name,                \
+                                  const glm::glm_t &m,                    \
+                                  const bool &transpose) {                \
+            auto location = glGetUniformLocation(program_, name.c_str()); \
+            glUniformMatrix##gl_t##v(location, 1,                         \
+                                     static_cast<GLboolean>(transpose),   \
+                                     &m[0][0]);                           \
+        }
+        
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_NUM(float_t, 1f)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_NUM(int_t, 1i)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_NUM(uint_t, 1ui)
+        
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_VEC(vec2, 2f)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_VEC(vec3, 3f)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_VEC(vec4, 4f)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_VEC(ivec2, 2i)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_VEC(ivec3, 3i)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_VEC(ivec4, 4i)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_VEC(uvec2, 2ui)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_VEC(uvec3, 3ui)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_VEC(uvec4, 4ui)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_VEC(dvec2, 2d)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_VEC(dvec3, 3d)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_VEC(dvec4, 4d)
+        
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_MAT(mat2, 2f)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_MAT(mat2x3, 2x3f)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_MAT(mat2x4, 2x4f)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_MAT(mat3x2, 3x2f)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_MAT(mat3, 3f)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_MAT(mat3x4, 3x4f)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_MAT(mat4x2, 4x2f)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_MAT(mat4x3, 4x3f)
+        MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_MAT(mat4, 4f)
+        
+#       undef MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_NUM
+        
+#       undef MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_VEC
+        
+#       undef MSR_GL_PROGRAM_SET_UNIFORM_IMPLEMENTATION_MAT
+        
     }
 }
 
