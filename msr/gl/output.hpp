@@ -1,88 +1,68 @@
 #ifndef MSR_GL_OUTPUT_HPP_INCLUDED
 #define MSR_GL_OUTPUT_HPP_INCLUDED
 
+#include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <iomanip>
 #include <glm/glm.hpp>
-
-#define MSR_GL_VECTOR_STREAM_OUTPUT_FUNCTION(x)    \
-template <class Char, class T, glm::precision P>   \
-std::basic_ostream<Char> &operator<<(              \
-  std::basic_ostream<Char> &os,                    \
-  const glm::detail::tvec##x<T, P> &v) {           \
-    os << '(';                                     \
-    for (int i = 0; i < v.length(); i++) {         \
-        os << v[i];                                \
-        if (i != v.length() - 1) {                 \
-            os << ',';                             \
-        }                                          \
-    }                                              \
-    os << ')';                                     \
-    return os;                                     \
-}
-
-#define MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION(a, b) \
-template <class Char, class T, glm::precision P>   \
-std::basic_ostream<Char> &operator<<(              \
-  std::basic_ostream<Char> &os,                    \
-  const glm::detail::tmat##a##x##b<T, P> &m) {     \
-    using std::setw;                               \
-    int width = 0;                                 \
-    for (int i = 0; i < m.length(); i++) {         \
-        for (int j = 0; j < m[i].length(); j++) {  \
-            std::stringstream ss;                  \
-            ss << m[i][j];                         \
-            auto length = ss.str().length();       \
-            if (width < length) {                  \
-                width = static_cast<int>(length);  \
-            }                                      \
-        }                                          \
-    }                                              \
-    width++;                                       \
-    for (int i = 0; i < m.length(); i++) {         \
-        if (i == 0) {                              \
-            os << "┌";                             \
-        } else if (i == m.length() - 1) {          \
-            os << "└";                             \
-        } else {                                   \
-            os << "│";                             \
-        }                                          \
-        for (int j = 0; j < m[i].length(); j++) {  \
-            os << setw(width) << m[i][j];          \
-        }                                          \
-        if (i == 0) {                              \
-            os << " ┐\n";                          \
-        } else if (i == m.length() - 1) {          \
-            os << " ┘";                            \
-        } else {                                   \
-            os << " │\n";                          \
-        }                                          \
-    }                                              \
-    return os;                                     \
-}
+#include <msr/gl/utility.hpp>
 
 #ifndef MSR_GL_NO_STREAM_OUTPUT_FUNCTION
 
-MSR_GL_VECTOR_STREAM_OUTPUT_FUNCTION(1)
-MSR_GL_VECTOR_STREAM_OUTPUT_FUNCTION(2)
-MSR_GL_VECTOR_STREAM_OUTPUT_FUNCTION(3)
-MSR_GL_VECTOR_STREAM_OUTPUT_FUNCTION(4)
+template <class Char, class T>
+typename std::enable_if<msr::gl::is_vec<T>::value,
+std::basic_ostream<Char>>::type &operator<<(
+  std::basic_ostream<Char> &os, const T &v) {
+    os << '(';
+    for (int i = 0; i < v.length(); i++) {
+        os << v[i];
+        if (i != v.length() - 1) {
+            os << ',';
+        }
+    }
+    os << ')';
+    return os;
+}
 
-MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION(2, 2)
-MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION(2, 3)
-MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION(2, 4)
-MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION(3, 2)
-MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION(3, 3)
-MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION(3, 4)
-MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION(4, 2)
-MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION(4, 3)
-MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION(4, 4)
+template <class Char, class T>
+typename std::enable_if<msr::gl::is_mat<T>::value,
+std::basic_ostream<Char>>::type &operator<<(
+  std::basic_ostream<Char> &os, const T &m) {
+    using std::setw;
+    int width = 0;
+    for (int i = 0; i < m.length(); i++) {
+        for (int j = 0; j < m[i].length(); j++) {
+            std::stringstream ss;
+            ss << m[i][j];
+            auto length = ss.str().length();
+            if (width < length) {
+                width = static_cast<int>(length);
+            }
+        }
+    }
+    width++;
+    for (int i = 0; i < m.length(); i++) {
+        if (i == 0) {
+            os << "┌";
+        } else if (i == m.length() - 1) {
+            os << "└";
+        } else {
+            os << "│";
+        }
+        for (int j = 0; j < m[i].length(); j++) {
+            os << setw(width) << m[i][j];
+        }
+        if (i == 0) {
+            os << " ┐\n";
+        } else if (i == m.length() - 1) {
+            os << " ┘";
+        } else {
+            os << " │\n";
+        }
+    }
+    return os;
+}
 
-#endif
-
-#undef MSR_GL_VECTOR_STREAM_OUTPUT_FUNCTION
-
-#undef MSR_GL_MATRIX_STREAM_OUTPUT_FUNCTION
+#endif  // MSR_GL_NO_STREAM_OUTPUT_FUNCTION
 
 #endif
