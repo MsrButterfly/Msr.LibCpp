@@ -1,9 +1,9 @@
 #ifndef MSR_GL_SHADER_HPP_INCLUDED
 #define MSR_GL_SHADER_HPP_INCLUDED
 
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
 #include <gl/glew.h>
 
 namespace msr {
