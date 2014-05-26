@@ -21,7 +21,7 @@ namespace msr {
             if (sizeof(n) <= sizeof(unit_t)) {
                 break;
             } else {
-                n >>= std::numeric_limits<unit_t>::digits;
+                n >>= unit_bits;
             }
         }
     }
@@ -123,6 +123,59 @@ namespace msr {
         }
         return true;
     }
+    large_int operator<<(const large_int &a, const large_int::shift_t &b) {
+        auto c = a;
+        return c <<= b;
+    }
+    large_int operator>>(const large_int &a, const large_int::shift_t &b) {
+        auto c = a;
+        return c >>= b;
+    }
+    large_int &large_int::operator<<=(const shift_t &b) {
+        auto div = std::lldiv(b, unit_bits);
+        using container = decltype(num_);
+        container c(div.quot + num_.size());
+        std::copy(begin(num_), end(num_), begin(c) + div.quot);
+        num_ = std::move(c);
+        if (div.rem > 0) {
+            dual_t d = 0;
+            for (auto &i : num_) {
+                d = static_cast<dual_t>(i) + d;
+                d <<= div.rem;
+                i = static_cast<unit_t>(d);
+                d >>= unit_bits;
+            }
+        }
+        return *this;
+    }
+    large_int &large_int::operator>>=(const shift_t &b) {
+        auto div = std::lldiv(b, unit_bits);
+        if (num_.size() - div.quot <= 0) {
+            return (*this = 0);
+        }
+        using container = decltype(num_);
+        container c(num_.size() - div.quot);
+        std::copy(begin(num_) + div.quot, end(num_), begin(c));
+        num_ = std::move(c);
+        if (div.rem > 0) {
+            dual_t d = 0;
+            for (auto i = num_.size(); i > 0; i--) {
+                auto j = i - 1;
+                d = ((static_cast<dual_t>(num_[j]) << unit_bits) >> div.rem) + d;
+                num_[j] = static_cast<unit_t>(d >> unit_bits);
+                d <<= unit_bits;
+            }
+            if (*num_.rbegin() == 0) {
+                if (num_.size() > 1) {
+                    num_.pop_back();
+                } else {
+                    signed_ = false;
+                }
+            }
+            
+        }
+        return *this;
+    }
     large_int operator+(const large_int &a, const large_int &b) {
         large_int c = a;
         c += b;
@@ -143,7 +196,7 @@ namespace msr {
             dual_t ub = i < b.size() ? b[i] : 0;
             c = static_cast<dual_t>(a[i]) + ub + c;
             a[i] = static_cast<unit_t>(c);
-            c >>= std::numeric_limits<unit_t>::digits;
+            c >>= unit_bits;
         }
         if (c) {
             a.push_back(static_cast<unit_t>(c));
@@ -182,28 +235,30 @@ namespace msr {
         }
         dual_t c = 0;
         for (std::size_t i = 0; i < max_size; i++) {
-            c ^= std::numeric_limits<unit_t>::max();
+            c ^= unit_max;
             c++;
-            c &= std::numeric_limits<unit_t>::max();
+            c &= unit_max;
             dual_t ub = i < b.size() ? b[i] : 0;
             c = static_cast<dual_t>(a[i]) - ub - c;
             a[i] = static_cast<unit_t>(c);
-            c >>= std::numeric_limits<unit_t>::digits;
+            c >>= unit_bits;
         }
         if (c) {
             for (auto &i : a) {
-                i ^= std::numeric_limits<unit_t>::max();
+                i ^= unit_max;
             }
             auto signed__ = signed_;
             signed_ = false;
             operator++();
             signed_ = !signed__;
         }
-        while (a.size() > 1 && *a.rbegin() == 0) {
-            a.pop_back();
-        }
-        if (a.size() == 1 && a[0] == 0) {
-            signed_ = false;
+        while (*a.rbegin() == 0) {
+            if (a.size() > 1) {
+                a.pop_back();
+            } else {
+                signed_ = false;
+                break;
+            }
         }
         return *this;
     }
@@ -221,11 +276,9 @@ namespace msr {
         if (m.signed_) {
             os << '-';
         }
-        large_int::largest_t s = 0;
-        for (int i = 0; i < n.num_.size(); i++) {
-            s += std::pow(std::numeric_limits<large_int::unit_t>::max() + 1, i) * n.num_[i];
+        for (auto i = n.num_.size(); i > 0; i--) {
+            os << std::bitset<large_int::unit_bits>(n.num_[i - 1]);
         }
-        os << s;
         return os;
     }
 }

@@ -1,5 +1,5 @@
-#ifndef MSR_LARGE_INT_HPP_INCLUDED
-#define MSR_LARGE_INT_HPP_INCLUDED
+#ifndef MSR_NUMBER_LARGE_INT_HPP_INCLUDED
+#define MSR_NUMBER_LARGE_INT_HPP_INCLUDED
 
 #include <bitset>
 #include <iostream>
@@ -14,10 +14,15 @@ namespace msr {
     class large_int {
     public:
         using self = large_int;
+        using shift_t = unsigned long long;
     private:
         using unit_t = uint8_t;
         using dual_t = uint16_t;
         using largest_t = unsigned long long;
+        enum {
+            unit_bits = std::numeric_limits<unit_t>::digits,
+            unit_max = std::numeric_limits<unit_t>::max()
+        };
     public:
         large_int();
         large_int(const self &another);
@@ -34,6 +39,10 @@ namespace msr {
         friend bool operator>(const self &a, const self &b);
         friend bool operator<=(const self &a, const self &b);
         friend bool operator>=(const self &a, const self &b);
+        friend self operator<<(const self &a, const shift_t &b);
+        friend self operator>>(const self &a, const shift_t &b);
+        self &operator<<=(const shift_t &b);
+        self &operator>>=(const shift_t &b);
         friend self operator+(const self &a, const self &b);
         self &operator+=(const self &another);
         self &operator++();
