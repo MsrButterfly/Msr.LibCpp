@@ -20,6 +20,9 @@ namespace msr {
             num_.push_back(static_cast<unit_type>(n));
             n >>= unit_bits;
         }
+        if (num_.size() == 0) {
+            num_.push_back(0);
+        }
     }
     large_int &large_int::operator=(const self_type &another) {
         signed_ = another.signed_;
@@ -305,6 +308,9 @@ namespace msr {
             }
         }
         return *this;
+    }
+    large_int::operator bool() {
+        return num_.size() != 1 || *num_.rbegin() != 0;
     }
     template <class Char>
     std::basic_ostream<Char> &operator<<(std::basic_ostream<Char> &os, const large_int &n) {

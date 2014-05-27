@@ -53,6 +53,7 @@ namespace msr {
         self_type operator--(int);
         friend self_type operator*(const self_type &a, const self_type &b);
         self_type &operator*=(const self_type &another);
+        explicit operator bool();
         template <class Char>
         friend std::basic_ostream<Char>
         &operator<<(std::basic_ostream<Char> &os, const self_type &n);
