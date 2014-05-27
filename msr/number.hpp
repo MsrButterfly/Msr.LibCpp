@@ -1,7 +1,6 @@
 #ifndef MSR_NUMBER_HPP_INCLUDED
 #define MSR_NUMBER_HPP_INCLUDED
 
-#include <msr/number/number.hpp>
-#include <msr/number/bit.hpp>
+#include "number/number.hpp"
 
 #endif

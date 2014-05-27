@@ -321,7 +321,7 @@ namespace msr {
             os << '-';
         }
         const unsigned int ary = 10;
-        const std::size_t length = large_int::unit_bits * n.num_.size() / number_bit_size<ary>::value + 3;
+        const std::size_t length = large_int::unit_bits * n.num_.size() / (number_bit_size<ary>::value - 1) + 1;
         std::vector<digit<ary>> sum(length, 0u);
         std::vector<digit<ary>> pow(length, 0u);
         pow[0]++;
@@ -330,12 +330,7 @@ namespace msr {
             auto div = std::lldiv(i, large_int::unit_bits);
             return n.num_[div.quot] & (1ll << div.rem);
         };
-//        std::cout << n.num_.size() << std::endl;
         for (std::size_t i = 0; i < n.num_.size() * large_int::unit_bits; i++) {
-//            for (auto j = pow.rbegin(); j != pow.rend(); j++) {
-//                std::cout << *j;
-//            }
-//            std::cout << std::endl;
             if (bit_of(i)) {
                 sum[0] += pow[0];
                 auto carry = sum[0].carry();
@@ -346,13 +341,8 @@ namespace msr {
                     sum[j] += pow[j];
                     last_carry = sum[j].carry() + carry;
                 }
-                sum[pow_size] += sum[pow_size - 1].carry();
-//                std::cout << pow_size << "===" << std::endl;
+                sum[pow_size] += last_carry;
             }
-//            for (auto j = sum.rbegin(); j != sum.rend(); j++) {
-//                std::cout << *j;
-//            }
-//            std::cout << std::endl;
             pow[0] *= 2u;
             auto carry = pow[0].carry();
             auto last_carry = carry;
