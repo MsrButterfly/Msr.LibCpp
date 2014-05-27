@@ -140,10 +140,12 @@ namespace msr {
         if (div.rem > 0) {
             dual_t d = 0;
             for (auto &i : num_) {
-                d = static_cast<dual_t>(i) + d;
-                d <<= div.rem;
+                d = (static_cast<dual_t>(i) << div.rem) + d;
                 i = static_cast<unit_t>(d);
                 d >>= unit_bits;
+            }
+            if (d) {
+                num_.push_back(static_cast<unit_t>(d));
             }
         }
         return *this;
