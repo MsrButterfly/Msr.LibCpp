@@ -34,7 +34,7 @@ namespace msr {
         return *this;
     }
     bool operator==(const large_int &a, const large_int &b) {
-        if (a.signed_ != b.signed_ || a.num_.size() != b.num_.size()) {
+        if ((a.signed_ ^ b.signed_) || a.num_.size() != b.num_.size()) {
             return false;
         }
         for (std::size_t i = 0; i < a.num_.size(); i++) {
@@ -45,7 +45,7 @@ namespace msr {
         return true;
     }
     bool operator!=(const large_int &a, const large_int &b) {
-        if (a.signed_ != b.signed_ || a.num_.size() != b.num_.size()) {
+        if ((a.signed_ ^ b.signed_) || a.num_.size() != b.num_.size()) {
             return true;
         }
         for (std::size_t i = 0; i < a.num_.size(); i++) {
@@ -56,65 +56,65 @@ namespace msr {
         return false;
     }
     bool operator<(const large_int &a, const large_int &b) {
-        if (a.signed_ != b.signed_) {
+        if (a.signed_ ^ b.signed_) {
             return a.signed_;
         }
         auto &signed_ = a.signed_;
         if (a.num_.size() != b.num_.size()) {
-            return a.num_.size() < b.num_.size() != signed_;
+            return a.num_.size() < b.num_.size() ^ signed_;
         }
         for (auto i = a.num_.size(); i > 0; i--) {
             auto j = i - 1;
             if (a.num_[j] != b.num_[j]) {
-                return (a.num_[j] < b.num_[j]) != signed_;
+                return (a.num_[j] < b.num_[j]) ^ signed_;
             }
         }
         return false;
     }
     bool operator>(const large_int &a, const large_int &b) {
-        if (a.signed_ != b.signed_) {
+        if (a.signed_ ^ b.signed_) {
             return b.signed_;
         }
         auto &signed_ = a.signed_;
         if (a.num_.size() != b.num_.size()) {
-            return a.num_.size() > b.num_.size() != signed_;
+            return a.num_.size() > b.num_.size() ^ signed_;
         }
         for (auto i = a.num_.size(); i > 0; i--) {
             auto j = i - 1;
             if (a.num_[j] != b.num_[j]) {
-                return (a.num_[j] > b.num_[j]) != signed_;
+                return (a.num_[j] > b.num_[j]) ^ signed_;
             }
         }
         return false;
     }
     bool operator<=(const large_int &a, const large_int &b) {
-        if (a.signed_ != b.signed_) {
+        if (a.signed_ ^ b.signed_) {
             return a.signed_;
         }
         auto &signed_ = a.signed_;
         if (a.num_.size() != b.num_.size()) {
-            return a.num_.size() < b.num_.size() != signed_;
+            return a.num_.size() < b.num_.size() ^ signed_;
         }
         for (auto i = a.num_.size(); i > 0; i--) {
             auto j = i - 1;
             if (a.num_[j] != b.num_[j]) {
-                return (a.num_[j] < b.num_[j]) != signed_;
+                return (a.num_[j] < b.num_[j]) ^ signed_;
             }
         }
         return true;
     }
     bool operator>=(const large_int &a, const large_int &b) {
-        if (a.signed_ != b.signed_) {
+        if (a.signed_ ^ b.signed_) {
             return a.signed_;
         }
         auto &signed_ = a.signed_;
         if (a.num_.size() != b.num_.size()) {
-            return a.num_.size() < b.num_.size() != signed_;
+            return a.num_.size() < b.num_.size() ^ signed_;
         }
         for (auto i = a.num_.size(); i > 0; i--) {
             auto j = i - 1;
             if (a.num_[j] != b.num_[j]) {
-                return (a.num_[j] < b.num_[j]) != signed_;
+                return (a.num_[j] < b.num_[j]) ^ signed_;
             }
         }
         return true;
@@ -182,7 +182,7 @@ namespace msr {
     large_int &large_int::operator+=(const self_type &another) {
         auto &a = num_;
         auto &b = another.num_;
-        if (signed_ != another.signed_) {
+        if (signed_ ^ another.signed_) {
             return *this -= -another;
         }
         std::size_t max_size = std::max(a.size(), b.size());
@@ -224,7 +224,7 @@ namespace msr {
     large_int &large_int::operator-=(const self_type &another) {
         auto &a = num_;
         auto &b = another.num_;
-        if (signed_ != another.signed_) {
+        if (signed_ ^ another.signed_) {
             return *this += -another;
         }
         std::size_t max_size = std::max(a.size(), b.size());
@@ -267,6 +267,44 @@ namespace msr {
         auto n = *this;
         operator-=(1);
         return n;
+    }
+    large_int operator*(const large_int &a, const large_int &b) {
+        auto c = a;
+        return c *= b;
+    }
+    large_int &large_int::operator*=(const self_type &another) {
+        auto a = num_;
+        auto &b = another.num_;
+        signed_ = signed_ ^ another.signed_;
+        num_ = decltype(num_)(a.size() + b.size());
+        for (std::size_t i = 0; i < b.size(); i++) {
+            decltype(num_) part(a.size() + b.size());
+            dual_type c = 0;
+            for (std::size_t j = 0; j < a.size(); j++) {
+                c = static_cast<dual_type>(a[j]) * static_cast<dual_type>(b[i]) + c;
+                part[i + j] = static_cast<unit_type>(c);
+                c >>= unit_bits;
+            }
+            if (c) {
+                part[i + a.size()] = c;
+            }
+            c = 0;
+            for (std::size_t j = 0; j < num_.size(); j++) {
+                c = static_cast<dual_type>(num_[j]);
+                c += part[j];
+                num_[j] = static_cast<unit_type>(c);
+                c >>= unit_bits;
+            }
+        }
+        while (*num_.rbegin() == 0) {
+            if (num_.size() > 1) {
+                num_.pop_back();
+            } else {
+                signed_ = false;
+                break;
+            }
+        }
+        return *this;
     }
     template <class Char>
     std::basic_ostream<Char> &operator<<(std::basic_ostream<Char> &os, const large_int &n) {
