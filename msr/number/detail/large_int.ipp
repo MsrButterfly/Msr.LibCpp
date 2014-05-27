@@ -61,7 +61,7 @@ namespace msr {
         }
         auto &signed_ = a.signed_;
         if (a.num_.size() != b.num_.size()) {
-            return a.num_.size() < b.num_.size() ^ signed_;
+            return (a.num_.size() < b.num_.size()) ^ signed_;
         }
         for (auto i = a.num_.size(); i > 0; i--) {
             auto j = i - 1;
@@ -77,7 +77,7 @@ namespace msr {
         }
         auto &signed_ = a.signed_;
         if (a.num_.size() != b.num_.size()) {
-            return a.num_.size() > b.num_.size() ^ signed_;
+            return (a.num_.size() > b.num_.size()) ^ signed_;
         }
         for (auto i = a.num_.size(); i > 0; i--) {
             auto j = i - 1;
@@ -93,7 +93,7 @@ namespace msr {
         }
         auto &signed_ = a.signed_;
         if (a.num_.size() != b.num_.size()) {
-            return a.num_.size() < b.num_.size() ^ signed_;
+            return (a.num_.size() < b.num_.size()) ^ signed_;
         }
         for (auto i = a.num_.size(); i > 0; i--) {
             auto j = i - 1;
@@ -109,7 +109,7 @@ namespace msr {
         }
         auto &signed_ = a.signed_;
         if (a.num_.size() != b.num_.size()) {
-            return a.num_.size() < b.num_.size() ^ signed_;
+            return (a.num_.size() < b.num_.size()) ^ signed_;
         }
         for (auto i = a.num_.size(); i > 0; i--) {
             auto j = i - 1;
