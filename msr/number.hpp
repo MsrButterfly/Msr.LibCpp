@@ -2,5 +2,6 @@
 #define MSR_NUMBER_HPP_INCLUDED
 
 #include <msr/number/number.hpp>
+#include <msr/number/bit.hpp>
 
 #endif
