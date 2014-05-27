@@ -4,9 +4,9 @@
 namespace msr {
     large_int::large_int()
     : signed_(false), num_{0} {}
-    large_int::large_int(const self &another)
+    large_int::large_int(const self_type &another)
     : signed_(another.signed_), num_(another.num_) {}
-    large_int::large_int(self &&another)
+    large_int::large_int(self_type &&another)
     : signed_(another.signed_), num_(std::move(another.num_)) {
         another.signed_ = false;
         another.num_ = {0};
@@ -14,23 +14,19 @@ namespace msr {
     template <class T, class C>
     large_int::large_int(const T &num)
     : signed_(std::is_signed<T>::value && num < 0) {
-        largest_t n;
+        dual_type n;
         n = signed_ ? -num : num;
         while (n > 0) {
-            num_.push_back(static_cast<unit_t>(n));
-            if (sizeof(n) <= sizeof(unit_t)) {
-                break;
-            } else {
-                n >>= unit_bits;
-            }
+            num_.push_back(static_cast<unit_type>(n));
+            n >>= unit_bits;
         }
     }
-    large_int &large_int::operator=(const self &another) {
+    large_int &large_int::operator=(const self_type &another) {
         signed_ = another.signed_;
         num_ = another.num_;
         return *this;
     }
-    large_int &large_int::operator=(self &&another) {
+    large_int &large_int::operator=(self_type &&another) {
         signed_ = another.signed_;
         num_ = another.num_;
         another.signed_ = false;
@@ -123,34 +119,34 @@ namespace msr {
         }
         return true;
     }
-    large_int operator<<(const large_int &a, const large_int::shift_t &b) {
+    large_int operator<<(const large_int &a, const large_int::shift_type &b) {
         auto c = a;
         return c <<= b;
     }
-    large_int operator>>(const large_int &a, const large_int::shift_t &b) {
+    large_int operator>>(const large_int &a, const large_int::shift_type &b) {
         auto c = a;
         return c >>= b;
     }
-    large_int &large_int::operator<<=(const shift_t &b) {
+    large_int &large_int::operator<<=(const shift_type &b) {
         auto div = std::lldiv(b, unit_bits);
         using container = decltype(num_);
         container c(div.quot + num_.size());
         std::copy(begin(num_), end(num_), begin(c) + div.quot);
         num_ = std::move(c);
         if (div.rem > 0) {
-            dual_t d = 0;
+            dual_type d = 0;
             for (auto &i : num_) {
-                d = (static_cast<dual_t>(i) << div.rem) + d;
-                i = static_cast<unit_t>(d);
+                d = (static_cast<dual_type>(i) << div.rem) + d;
+                i = static_cast<unit_type>(d);
                 d >>= unit_bits;
             }
             if (d) {
-                num_.push_back(static_cast<unit_t>(d));
+                num_.push_back(static_cast<unit_type>(d));
             }
         }
         return *this;
     }
-    large_int &large_int::operator>>=(const shift_t &b) {
+    large_int &large_int::operator>>=(const shift_type &b) {
         auto div = std::lldiv(b, unit_bits);
         if (num_.size() - div.quot <= 0) {
             return (*this = 0);
@@ -160,11 +156,11 @@ namespace msr {
         std::copy(begin(num_) + div.quot, end(num_), begin(c));
         num_ = std::move(c);
         if (div.rem > 0) {
-            dual_t d = 0;
+            dual_type d = 0;
             for (auto i = num_.size(); i > 0; i--) {
                 auto j = i - 1;
-                d = ((static_cast<dual_t>(num_[j]) << unit_bits) >> div.rem) + d;
-                num_[j] = static_cast<unit_t>(d >> unit_bits);
+                d = ((static_cast<dual_type>(num_[j]) << unit_bits) >> div.rem) + d;
+                num_[j] = static_cast<unit_type>(d >> unit_bits);
                 d <<= unit_bits;
             }
             if (*num_.rbegin() == 0) {
@@ -183,7 +179,7 @@ namespace msr {
         c += b;
         return c;
     }
-    large_int &large_int::operator+=(const self &another) {
+    large_int &large_int::operator+=(const self_type &another) {
         auto &a = num_;
         auto &b = another.num_;
         if (signed_ != another.signed_) {
@@ -193,15 +189,15 @@ namespace msr {
         while (a.size() < max_size) {
             a.push_back(0);
         }
-        dual_t c = 0;
+        dual_type c = 0;
         for (std::size_t i = 0; i < max_size; i++) {
-            dual_t ub = i < b.size() ? b[i] : 0;
-            c = static_cast<dual_t>(a[i]) + ub + c;
-            a[i] = static_cast<unit_t>(c);
+            dual_type ub = i < b.size() ? b[i] : 0;
+            c = static_cast<dual_type>(a[i]) + ub + c;
+            a[i] = static_cast<unit_type>(c);
             c >>= unit_bits;
         }
         if (c) {
-            a.push_back(static_cast<unit_t>(c));
+            a.push_back(static_cast<unit_type>(c));
         }
         return *this;
     }
@@ -225,7 +221,7 @@ namespace msr {
         c -= b;
         return c;
     }
-    large_int &large_int::operator-=(const self &another) {
+    large_int &large_int::operator-=(const self_type &another) {
         auto &a = num_;
         auto &b = another.num_;
         if (signed_ != another.signed_) {
@@ -235,14 +231,14 @@ namespace msr {
         while (a.size() < max_size) {
             a.push_back(0);
         }
-        dual_t c = 0;
+        dual_type c = 0;
         for (std::size_t i = 0; i < max_size; i++) {
             c ^= unit_max;
             c++;
             c &= unit_max;
-            dual_t ub = i < b.size() ? b[i] : 0;
-            c = static_cast<dual_t>(a[i]) - ub - c;
-            a[i] = static_cast<unit_t>(c);
+            dual_type ub = i < b.size() ? b[i] : 0;
+            c = static_cast<dual_type>(a[i]) - ub - c;
+            a[i] = static_cast<unit_type>(c);
             c >>= unit_bits;
         }
         if (c) {
