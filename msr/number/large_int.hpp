@@ -1,15 +1,11 @@
 #ifndef MSR_NUMBER_LARGE_INT_HPP_INCLUDED
 #define MSR_NUMBER_LARGE_INT_HPP_INCLUDED
 
-#include <bitset>
 #include <iostream>
-#include <iomanip>
 #include <limits>
-#include <string>
 #include <type_traits>
 #include <vector>
-#include <cmath>
-#include <msr/number/bit.hpp>
+#include "bit.hpp"
 
 namespace msr {
     class large_int {
@@ -64,6 +60,6 @@ namespace msr {
     };
 }
 
-#include <msr/number/detail/large_int.ipp>
+#include "detail/large_int.ipp"
 
 #endif

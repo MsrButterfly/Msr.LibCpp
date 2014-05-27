@@ -1,5 +1,8 @@
-#ifndef MSR_NUMBER_LARGE_INT_IPP_INCLUDED
-#define MSR_NUMBER_LARGE_INT_IPP_INCLUDED
+#ifndef MSR_NUMBER_DETAIL_LARGE_INT_IPP_INCLUDED
+#define MSR_NUMBER_DETAIL_LARGE_INT_IPP_INCLUDED
+
+#include <iomanip>
+#include "../digit.hpp"
 
 namespace msr {
     large_int::large_int()
@@ -14,7 +17,7 @@ namespace msr {
     template <class T, class C>
     large_int::large_int(const T &num)
     : signed_(std::is_signed<T>::value && num < 0) {
-        dual_type n;
+        unsigned long long n;
         n = signed_ ? -num : num;
         while (n > 0) {
             num_.push_back(static_cast<unit_type>(n));
@@ -314,12 +317,64 @@ namespace msr {
     }
     template <class Char>
     std::basic_ostream<Char> &operator<<(std::basic_ostream<Char> &os, const large_int &n) {
-        auto m = n;
-        if (m.signed_) {
+        if (n.signed_) {
             os << '-';
         }
-        for (auto i = n.num_.size(); i > 0; i--) {
-            os << std::bitset<large_int::unit_bits>(n.num_[i - 1]);
+        const unsigned int ary = 10;
+        const std::size_t length = large_int::unit_bits * n.num_.size() / number_bit_size<ary>::value + 3;
+        std::vector<digit<ary>> sum(length, 0u);
+        std::vector<digit<ary>> pow(length, 0u);
+        pow[0]++;
+        std::size_t pow_size = 1;
+        auto bit_of = [&n](std::size_t i) {
+            auto div = std::lldiv(i, large_int::unit_bits);
+            return n.num_[div.quot] & (1ll << div.rem);
+        };
+//        std::cout << n.num_.size() << std::endl;
+        for (std::size_t i = 0; i < n.num_.size() * large_int::unit_bits; i++) {
+//            for (auto j = pow.rbegin(); j != pow.rend(); j++) {
+//                std::cout << *j;
+//            }
+//            std::cout << std::endl;
+            if (bit_of(i)) {
+                sum[0] += pow[0];
+                auto carry = sum[0].carry();
+                auto last_carry = carry;
+                for (std::size_t j = 1; j < pow_size; j++) {
+                    sum[j] += last_carry;
+                    carry = sum[j].carry();
+                    sum[j] += pow[j];
+                    last_carry = sum[j].carry() + carry;
+                }
+                sum[pow_size] += sum[pow_size - 1].carry();
+//                std::cout << pow_size << "===" << std::endl;
+            }
+//            for (auto j = sum.rbegin(); j != sum.rend(); j++) {
+//                std::cout << *j;
+//            }
+//            std::cout << std::endl;
+            pow[0] *= 2u;
+            auto carry = pow[0].carry();
+            auto last_carry = carry;
+            for (std::size_t j = 1; j < pow_size; j++) {
+                pow[j] *= 2u;
+                carry = pow[j].carry();
+                pow[j] += last_carry;
+                last_carry = pow[j].carry() + carry;
+            }
+            if (last_carry) {
+                pow[pow_size++] = last_carry;
+            }
+        }
+        auto i = pow_size;
+        for (; i > 0 && sum[i].get() == 0u; i--);
+        if (i == 0 && sum[0].get() == 0u) {
+            return os << 0;
+        }
+        i++;
+        for (; i > 0; i--) {
+            auto j = i - 1;
+            os << sum[j];
         }
         return os;
     }

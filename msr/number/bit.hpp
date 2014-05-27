@@ -1,12 +1,10 @@
 #ifndef MSR_NUMBER_BIT_HPP_INCLUDED
 #define MSR_NUMBER_BIT_HPP_INCLUDED
 
-#include <numeric>
 #include <limits>
-#include <cstdint>
 
 namespace msr {
-    template <std::size_t n>
+    template <unsigned long long n>
     struct number_bit_size {
         static const auto value = number_bit_size<(n >> 1)>::value + 1;
     };
