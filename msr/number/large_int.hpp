@@ -9,17 +9,18 @@
 #include <type_traits>
 #include <vector>
 #include <cmath>
+#include <msr/number/bit.hpp>
 
 namespace msr {
     class large_int {
     public:
         using self_type = large_int;
-        using shift_type = unsigned long long;
+        using shift_type = std::size_t;
     private:
         using unit_type = uint8_t;
         using dual_type = uint16_t;
         enum {
-            unit_bits = std::numeric_limits<unit_type>::digits,
+            unit_bits = type_bit_size<unit_type>::value,
             unit_max = std::numeric_limits<unit_type>::max()
         };
     public:
