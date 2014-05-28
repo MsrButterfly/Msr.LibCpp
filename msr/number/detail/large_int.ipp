@@ -322,30 +322,30 @@ namespace msr {
     std::basic_ostream<Char> &operator<<(std::basic_ostream<Char> &os, const large_int &n) {
         const auto &flags = os.flags();
         if (flags & std::ios::oct) {
-            return n.output<8>(os);
+            return n.output<8>(os, n);
         } else if (flags & std::ios::dec) {
-            return n.output<10>(os);
+            return n.output<10>(os, n);
         } else if (flags & std::ios::hex) {
-            return n.output<16>(os);
+            return n.output<16>(os, n);
         }
         return os;
     }
     template <unsigned int Ary, class Char>
-    std::basic_ostream<Char> &large_int::output(std::basic_ostream<Char> &os) const {
-        if (signed_) {
+    std::basic_ostream<Char> &large_int::output(std::basic_ostream<Char> &os, const self_type &n) {
+        if (n.signed_) {
             os << '-';
         }
         constexpr unsigned int ary = Ary;
-        const std::size_t length = large_int::unit_bits * num_.size() / (number_bit_size<ary>::value - 1) + 1;
+        const std::size_t length = large_int::unit_bits * n.num_.size() / (number_bit_size<ary>::value - 1) + 1;
         std::vector<digit<ary>> sum(length, 0u);
         std::vector<digit<ary>> pow(length, 0u);
         pow[0]++;
         std::size_t pow_size = 1;
         auto bit_of = [&](std::size_t i) {
             auto div = std::lldiv(i, large_int::unit_bits);
-            return num_[div.quot] & (1ll << div.rem);
+            return n.num_[div.quot] & (1ll << div.rem);
         };
-        for (std::size_t i = 0; i < num_.size() * large_int::unit_bits; i++) {
+        for (std::size_t i = 0; i < n.num_.size() * large_int::unit_bits; i++) {
             if (bit_of(i)) {
                 sum[0] += pow[0];
                 auto carry = sum[0].carry();

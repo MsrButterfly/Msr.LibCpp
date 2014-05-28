@@ -57,7 +57,7 @@ namespace msr {
         &operator<<(std::basic_ostream<Char> &os, const self_type &n);
     private:
         template <unsigned int Ary, class Char>
-        std::basic_ostream<Char> &output(std::basic_ostream<Char> &os) const;
+        static std::basic_ostream<Char> &output(std::basic_ostream<Char> &os, const self_type &n);
     public:
         bool signed_;
         std::vector<unit_type> num_;
