@@ -180,6 +180,9 @@ namespace msr {
         }
         return *this;
     }
+    large_int large_int::operator+() const {
+        return *this;
+    }
     large_int operator+(const large_int &a, const large_int &b) {
         large_int c = a;
         c += b;
@@ -317,20 +320,32 @@ namespace msr {
     }
     template <class Char>
     std::basic_ostream<Char> &operator<<(std::basic_ostream<Char> &os, const large_int &n) {
-        if (n.signed_) {
+        const auto &flags = os.flags();
+        if (flags & std::ios::oct) {
+            return n.output<8>(os);
+        } else if (flags & std::ios::dec) {
+            return n.output<10>(os);
+        } else if (flags & std::ios::hex) {
+            return n.output<16>(os);
+        }
+        return os;
+    }
+    template <unsigned int Ary, class Char>
+    std::basic_ostream<Char> &large_int::output(std::basic_ostream<Char> &os) const {
+        if (signed_) {
             os << '-';
         }
-        const unsigned int ary = 10;
-        const std::size_t length = large_int::unit_bits * n.num_.size() / (number_bit_size<ary>::value - 1) + 1;
+        constexpr unsigned int ary = Ary;
+        const std::size_t length = large_int::unit_bits * num_.size() / (number_bit_size<ary>::value - 1) + 1;
         std::vector<digit<ary>> sum(length, 0u);
         std::vector<digit<ary>> pow(length, 0u);
         pow[0]++;
         std::size_t pow_size = 1;
-        auto bit_of = [&n](std::size_t i) {
+        auto bit_of = [&](std::size_t i) {
             auto div = std::lldiv(i, large_int::unit_bits);
-            return n.num_[div.quot] & (1ll << div.rem);
+            return num_[div.quot] & (1ll << div.rem);
         };
-        for (std::size_t i = 0; i < n.num_.size() * large_int::unit_bits; i++) {
+        for (std::size_t i = 0; i < num_.size() * large_int::unit_bits; i++) {
             if (bit_of(i)) {
                 sum[0] += pow[0];
                 auto carry = sum[0].carry();
@@ -358,9 +373,6 @@ namespace msr {
         }
         auto i = pow_size;
         for (; i > 0 && sum[i].get() == 0u; i--);
-        if (i == 0 && sum[0].get() == 0u) {
-            return os << 0;
-        }
         i++;
         for (; i > 0; i--) {
             auto j = i - 1;

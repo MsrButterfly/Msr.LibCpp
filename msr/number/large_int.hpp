@@ -39,6 +39,7 @@ namespace msr {
         friend self_type operator>>(const self_type &a, const shift_type &b);
         self_type &operator<<=(const shift_type &b);
         self_type &operator>>=(const shift_type &b);
+        self_type operator+() const;
         friend self_type operator+(const self_type &a, const self_type &b);
         self_type &operator+=(const self_type &another);
         self_type &operator++();
@@ -54,6 +55,9 @@ namespace msr {
         template <class Char>
         friend std::basic_ostream<Char>
         &operator<<(std::basic_ostream<Char> &os, const self_type &n);
+    private:
+        template <unsigned int Ary, class Char>
+        std::basic_ostream<Char> &output(std::basic_ostream<Char> &os) const;
     public:
         bool signed_;
         std::vector<unit_type> num_;
