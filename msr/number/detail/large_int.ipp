@@ -341,7 +341,7 @@ namespace msr {
         std::vector<digit<ary>> pow(length, 0u);
         pow[0]++;
         std::size_t pow_size = 1;
-        auto bit_of = [&](std::size_t i) {
+        auto bit_of = [&](const std::size_t &i) {
             auto div = std::lldiv(i, large_int::unit_bits);
             return n.num_[div.quot] & (1ll << div.rem);
         };
@@ -371,7 +371,7 @@ namespace msr {
                 pow[pow_size++] = last_carry;
             }
         }
-        auto i = pow_size;
+        auto i = pow_size - 1;
         for (; i > 0 && sum[i].get() == 0u; i--);
         i++;
         for (; i > 0; i--) {

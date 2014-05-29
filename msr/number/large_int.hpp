@@ -1,7 +1,7 @@
 #ifndef MSR_NUMBER_LARGE_INT_HPP_INCLUDED
 #define MSR_NUMBER_LARGE_INT_HPP_INCLUDED
 
-#include <iostream>
+#include <ios>
 #include <limits>
 #include <type_traits>
 #include <vector>
@@ -58,7 +58,7 @@ namespace msr {
     private:
         template <unsigned int Ary, class Char>
         static std::basic_ostream<Char> &output(std::basic_ostream<Char> &os, const self_type &n);
-    public:
+    private:
         bool signed_;
         std::vector<unit_type> num_;
     };
