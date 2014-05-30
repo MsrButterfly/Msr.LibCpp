@@ -2,6 +2,7 @@
 #define MSR_NUMBER_DETAIL_LARGE_INT_IPP_INCLUDED
 
 #include <iomanip>
+#include <sstream>
 #include "../digit.hpp"
 
 namespace msr {
@@ -315,7 +316,25 @@ namespace msr {
         }
         return *this;
     }
-    large_int::operator bool() {
+    large_int operator/(const large_int &a, const large_int &b) {
+        auto c = a;
+        return c /= b;
+    }
+    large_int &large_int::operator/=(const self_type &another) {
+        if (!another) {
+            throw std::string("Division By Zero!!!");
+        }
+        signed_ = signed_ & another.signed_;
+        if (num_.size() < another.num_.size()) {
+            num_ = {0};
+        }
+        auto a = num_;
+        auto &b = another.num_;
+        num_ = decltype(num_)(a.size() - b.size() + 1);
+        
+        return *this;
+    }
+    large_int::operator bool() const {
         return num_.size() != 1 || *num_.rbegin() != 0;
     }
     template <class Char>
@@ -335,10 +354,9 @@ namespace msr {
         if (n.signed_) {
             os << '-';
         }
-        constexpr unsigned int ary = Ary;
-        const std::size_t length = large_int::unit_bits * n.num_.size() / (number_bit_size<ary>::value - 1) + 1;
-        std::vector<digit<ary>> sum(length, 0u);
-        std::vector<digit<ary>> pow(length, 0u);
+        const std::size_t length = large_int::unit_bits * n.num_.size() / (number_bit_size<Ary>::value - 1) + 1;
+        std::vector<digit<Ary>> sum(length, 0u);
+        std::vector<digit<Ary>> pow(length, 0u);
         pow[0]++;
         std::size_t pow_size = 1;
         auto bit_of = [&](const std::size_t &i) {
@@ -374,10 +392,13 @@ namespace msr {
         auto i = pow_size - 1;
         for (; i > 0 && sum[i].get() == 0u; i--);
         i++;
+        std::basic_stringstream<Char> ss;
+        ss.flags(os.flags());
         for (; i > 0; i--) {
             auto j = i - 1;
-            os << sum[j];
+            ss << sum[j];
         }
+        os << ss.str();
         return os;
     }
 }
