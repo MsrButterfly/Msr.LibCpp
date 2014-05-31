@@ -23,12 +23,12 @@ namespace msr {
         const value_type &carry() const;
         const value_type &borrow() const;
         self_type &operator=(const self_type &another);
-        self_type &operator+=(const self_type &another);
         self_type &operator++();
-        self_type operator++(int);
-        self_type &operator-=(const self_type &another);
         self_type &operator--();
+        self_type operator++(int);
         self_type operator--(int);
+        self_type &operator+=(const self_type &another);
+        self_type &operator-=(const self_type &another);
         self_type &operator*=(const self_type &another);
         self_type &operator/=(const self_type &another);
         friend self_type operator+(const self_type &a, const self_type &b) { return self_type(a) += b; }

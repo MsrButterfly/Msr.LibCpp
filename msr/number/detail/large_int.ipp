@@ -44,7 +44,7 @@ namespace msr {
         if ((a.signed_ ^ b.signed_) || a.num_.size() != b.num_.size()) {
             return false;
         }
-        for (std::size_t i = 0; i < a.num_.size(); i++) {
+        for (std::size_t i = 0; i < a.num_.size(); ++i) {
             if (a.num_[i] != b.num_[i]) {
                 return false;
             }
@@ -55,7 +55,7 @@ namespace msr {
         if ((a.signed_ ^ b.signed_) || a.num_.size() != b.num_.size()) {
             return true;
         }
-        for (std::size_t i = 0; i < a.num_.size(); i++) {
+        for (std::size_t i = 0; i < a.num_.size(); ++i) {
             if (a.num_[i] != b.num_[i]) {
                 return true;
             }
@@ -136,8 +136,7 @@ namespace msr {
     }
     large_int &large_int::operator<<=(const shift_type &another) {
         auto div = std::lldiv(another, unit_bits);
-        using container = decltype(num_);
-        container c(div.quot + num_.size());
+        decltype(num_) c(div.quot + num_.size());
         std::copy(begin(num_), end(num_), begin(c) + div.quot);
         num_ = std::move(c);
         if (div.rem > 0) {
@@ -158,8 +157,7 @@ namespace msr {
         if (num_.size() - div.quot <= 0) {
             return (*this = 0);
         }
-        using container = decltype(num_);
-        container c(num_.size() - div.quot);
+        decltype(num_) c(num_.size() - div.quot);
         std::copy(begin(num_) + div.quot, end(num_), begin(c));
         num_ = std::move(c);
         if (div.rem > 0) {
@@ -196,12 +194,17 @@ namespace msr {
             return *this -= -another;
         }
         std::size_t max_size = std::max(a.size(), b.size());
-        while (a.size() < max_size) {
-            a.push_back(0);
+        if (a.size() < max_size) {
+            a.resize(max_size);
         }
         dual_type c = 0;
-        for (std::size_t i = 0; i < max_size; i++) {
-            dual_type ub = i < b.size() ? b[i] : 0;
+        for (std::size_t i = 0; i < max_size; ++i) {
+            dual_type ub = 0;
+            if (i < b.size()) {
+                ub = b[i];
+            } else if (!c) {
+                break;
+            }
             c = static_cast<dual_type>(a[i]) + ub + c;
             a[i] = static_cast<unit_type>(c);
             c >>= unit_bits;
@@ -242,11 +245,16 @@ namespace msr {
             a.push_back(0);
         }
         dual_type c = 0;
-        for (std::size_t i = 0; i < max_size; i++) {
+        for (std::size_t i = 0; i < max_size; ++i) {
             c ^= unit_max;
             c++;
             c &= unit_max;
-            dual_type ub = i < b.size() ? b[i] : 0;
+            dual_type ub = 0;
+            if (i < b.size()) {
+                ub = b[i];
+            } else if (!c) {
+                break;
+            }
             c = static_cast<dual_type>(a[i]) - ub - c;
             a[i] = static_cast<unit_type>(c);
             c >>= unit_bits;
@@ -260,13 +268,12 @@ namespace msr {
             operator++();
             signed_ = !signed__;
         }
-        while (*a.rbegin() == 0) {
-            if (a.size() > 1) {
-                a.pop_back();
-            } else {
-                signed_ = false;
-                break;
-            }
+        decltype(num_)::reverse_iterator p;
+        for (p = num_.rbegin(); p != num_.rend() && *p == 0; ++p);
+        if (p == num_.rend()) {
+            signed_ = false;
+        } else {
+            num_.resize(num_.rend() - p);
         }
         return *this;
     }
@@ -287,10 +294,11 @@ namespace msr {
         auto &b = another.num_;
         signed_ = signed_ ^ another.signed_;
         num_ = decltype(num_)(a.size() + b.size());
-        for (std::size_t i = 0; i < b.size(); i++) {
-            decltype(num_) part(a.size() + b.size());
+        decltype(num_) part(a.size() + b.size());
+        for (std::size_t i = 0; i < b.size(); ++i) {
+            std::memset(&part[0], 0, part.size() * sizeof(unit_type));
             dual_type c = 0;
-            for (std::size_t j = 0; j < a.size(); j++) {
+            for (std::size_t j = 0; j < a.size(); ++j) {
                 c = static_cast<dual_type>(a[j]) * static_cast<dual_type>(b[i]) + c;
                 part[i + j] = static_cast<unit_type>(c);
                 c >>= unit_bits;
@@ -299,19 +307,18 @@ namespace msr {
                 part[i + a.size()] = c;
             }
             c = 0;
-            for (std::size_t j = 0; j < num_.size(); j++) {
+            for (std::size_t j = 0; j < num_.size(); ++j) {
                 c = static_cast<dual_type>(num_[j]) + part[j] + c;
                 num_[j] = static_cast<unit_type>(c);
                 c >>= unit_bits;
             }
         }
-        while (*num_.rbegin() == 0) {
-            if (num_.size() > 1) {
-                num_.pop_back();
-            } else {
-                signed_ = false;
-                break;
-            }
+        decltype(num_)::reverse_iterator p;
+        for (p = num_.rbegin(); p != num_.rend() && *p == 0; ++p);
+        if (p == num_.rend()) {
+            signed_ = false;
+        } else {
+            num_.resize(num_.rend() - p);
         }
         return *this;
     }
@@ -380,12 +387,12 @@ namespace msr {
             auto div = std::lldiv(i, large_int::unit_bits);
             return n.num_[div.quot] & (1ll << div.rem);
         };
-        for (std::size_t i = 0; i < n.num_.size() * large_int::unit_bits; i++) {
+        for (std::size_t i = 0; i < n.num_.size() * large_int::unit_bits; ++i) {
             if (bit_of(i)) {
                 sum[0] += pow[0];
                 auto carry = sum[0].carry();
                 auto last_carry = carry;
-                for (std::size_t j = 1; j < pow_size; j++) {
+                for (std::size_t j = 1; j < pow_size; ++j) {
                     sum[j] += last_carry;
                     carry = sum[j].carry();
                     sum[j] += pow[j];
@@ -396,7 +403,7 @@ namespace msr {
             pow[0] *= 2u;
             auto carry = pow[0].carry();
             auto last_carry = carry;
-            for (std::size_t j = 1; j < pow_size; j++) {
+            for (std::size_t j = 1; j < pow_size; ++j) {
                 pow[j] *= 2u;
                 carry = pow[j].carry();
                 pow[j] += last_carry;
@@ -408,7 +415,7 @@ namespace msr {
         }
         auto i = pow_size - 1;
         for (; i > 0 && sum[i].get() == 0u; i--);
-        i++;
+        ++i;
         std::basic_stringstream<Char> ss;
         ss.flags(os.flags());
         for (; i > 0; i--) {
