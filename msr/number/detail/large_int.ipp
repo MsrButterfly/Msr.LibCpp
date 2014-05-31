@@ -1,23 +1,22 @@
 #ifndef MSR_NUMBER_DETAIL_LARGE_INT_IPP_INCLUDED
 #define MSR_NUMBER_DETAIL_LARGE_INT_IPP_INCLUDED
 
-#include <bitset>
 #include <iomanip>
 #include <sstream>
 #include "../digit.hpp"
 
 namespace msr {
-    large_int::large_int()
+    large_int::large_int() MSR_NOEXCEPT
     : signed_(false), num_{0} {}
-    large_int::large_int(const self_type &another)
+    large_int::large_int(const self_type &another) MSR_NOEXCEPT
     : signed_(another.signed_), num_(another.num_) {}
-    large_int::large_int(self_type &&another)
+    large_int::large_int(self_type &&another) MSR_NOEXCEPT
     : signed_(another.signed_), num_(std::move(another.num_)) {
         another.signed_ = false;
         another.num_ = {0};
     }
     template <class T, class C>
-    large_int::large_int(const T &num)
+    large_int::large_int(const T &num) MSR_NOEXCEPT
     : signed_(std::is_signed<T>::value && num < 0) {
         unsigned long long n;
         n = signed_ ? -num : num;
@@ -29,7 +28,7 @@ namespace msr {
             num_.push_back(0);
         }
     }
-    large_int large_int::operator~() const {
+    large_int large_int::operator~() const MSR_NOEXCEPT {
         auto n = *this;
         std::size_t i;
         for (i = 0; i < n.num_.size() - 1; ++i) {
@@ -52,45 +51,45 @@ namespace msr {
         }
         return n;
     }
-    large_int large_int::operator+() const {
+    large_int large_int::operator+() const MSR_NOEXCEPT {
         return *this;
     }
-    large_int large_int::operator-() const {
+    large_int large_int::operator-() const MSR_NOEXCEPT {
         auto n = *this;
         if (n) {
             n.signed_ = !n.signed_;
         }
         return n;
     }
-    large_int large_int::operator++(int) {
+    large_int large_int::operator++(int) MSR_NOEXCEPT {
         auto a = *this;
         operator+=(1);
         return a;
     }
-    large_int large_int::operator--(int) {
+    large_int large_int::operator--(int) MSR_NOEXCEPT {
         auto n = *this;
         operator-=(1);
         return n;
     }
-    large_int &large_int::operator++() {
+    large_int &large_int::operator++() MSR_NOEXCEPT {
         return operator+=(1);
     }
-    large_int &large_int::operator--() {
+    large_int &large_int::operator--() MSR_NOEXCEPT {
         return operator-=(1);
     }
-    large_int &large_int::operator=(const self_type &another) {
+    large_int &large_int::operator=(const self_type &another) MSR_NOEXCEPT {
         signed_ = another.signed_;
         num_ = another.num_;
         return *this;
     }
-    large_int &large_int::operator=(self_type &&another) {
+    large_int &large_int::operator=(self_type &&another) MSR_NOEXCEPT {
         signed_ = another.signed_;
         num_ = another.num_;
         another.signed_ = false;
         another.num_ = {0};
         return *this;
     }
-    large_int &large_int::operator<<=(const shift_type &another) {
+    large_int &large_int::operator<<=(const shift_type &another) MSR_NOEXCEPT {
         auto div = std::lldiv(another, unit_bits);
         decltype(num_) c(div.quot + num_.size());
         std::copy(begin(num_), end(num_), begin(c) + div.quot);
@@ -108,7 +107,7 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator>>=(const shift_type &another) {
+    large_int &large_int::operator>>=(const shift_type &another) MSR_NOEXCEPT {
         auto div = std::lldiv(another, unit_bits);
         if (num_.size() - div.quot <= 0) {
             return (*this = 0);
@@ -135,7 +134,7 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator&=(const large_int &another) {
+    large_int &large_int::operator&=(const large_int &another) MSR_NOEXCEPT {
         auto size = std::min(num_.size(), another.num_.size());
         if (num_.size() > size) {
             num_.resize(size);
@@ -153,7 +152,7 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator|=(const large_int &another) {
+    large_int &large_int::operator|=(const large_int &another) MSR_NOEXCEPT {
         auto size = std::min(num_.size(), another.num_.size());
         for (std::size_t i = 0; i < size; ++i) {
             num_[i] |= another.num_[i];
@@ -168,7 +167,7 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator^=(const large_int &another) {
+    large_int &large_int::operator^=(const large_int &another) MSR_NOEXCEPT {
         auto size = std::min(num_.size(), another.num_.size());
         auto another_size = another.num_.size();
         if (num_.size() < another_size) {
@@ -187,7 +186,7 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator+=(const self_type &another) {
+    large_int &large_int::operator+=(const self_type &another) MSR_NOEXCEPT {
         auto &a = num_;
         auto &b = another.num_;
         if (signed_ ^ another.signed_ && another) {
@@ -214,7 +213,7 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator-=(const self_type &another) {
+    large_int &large_int::operator-=(const self_type &another) MSR_NOEXCEPT {
         auto &a = num_;
         auto &b = another.num_;
         if (signed_ ^ another.signed_ && another) {
@@ -258,7 +257,7 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator*=(const self_type &another) {
+    large_int &large_int::operator*=(const self_type &another) MSR_NOEXCEPT {
         auto a = num_;
         auto &b = another.num_;
         signed_ = signed_ ^ another.signed_;
@@ -292,7 +291,7 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator/=(const self_type &another) {
+    large_int &large_int::operator/=(const self_type &another) throw(large_int::divide_by_zero) {
         if (!another) {
             throw divide_by_zero();
         }
@@ -315,12 +314,12 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator%=(const self_type &another) {
+    large_int &large_int::operator%=(const self_type &another) throw(large_int::divide_by_zero) {
         auto d = div(*this, another);
         operator=(d.rem);
         return *this;
     }
-    bool operator==(const large_int &a, const large_int &b) {
+    bool operator==(const large_int &a, const large_int &b) MSR_NOEXCEPT {
         if ((a.signed_ ^ b.signed_) || a.num_.size() != b.num_.size()) {
             return false;
         }
@@ -331,7 +330,7 @@ namespace msr {
         }
         return true;
     }
-    bool operator!=(const large_int &a, const large_int &b) {
+    bool operator!=(const large_int &a, const large_int &b) MSR_NOEXCEPT {
         if ((a.signed_ ^ b.signed_) || a.num_.size() != b.num_.size()) {
             return true;
         }
@@ -342,7 +341,7 @@ namespace msr {
         }
         return false;
     }
-    bool operator<(const large_int &a, const large_int &b) {
+    bool operator<(const large_int &a, const large_int &b) MSR_NOEXCEPT {
         if (a.signed_ ^ b.signed_) {
             return a.signed_;
         }
@@ -358,7 +357,7 @@ namespace msr {
         }
         return false;
     }
-    bool operator>(const large_int &a, const large_int &b) {
+    bool operator>(const large_int &a, const large_int &b) MSR_NOEXCEPT {
         if (a.signed_ ^ b.signed_) {
             return b.signed_;
         }
@@ -374,7 +373,7 @@ namespace msr {
         }
         return false;
     }
-    bool operator<=(const large_int &a, const large_int &b) {
+    bool operator<=(const large_int &a, const large_int &b) MSR_NOEXCEPT {
         if (a.signed_ ^ b.signed_) {
             return a.signed_;
         }
@@ -390,7 +389,7 @@ namespace msr {
         }
         return true;
     }
-    bool operator>=(const large_int &a, const large_int &b) {
+    bool operator>=(const large_int &a, const large_int &b) MSR_NOEXCEPT {
         if (a.signed_ ^ b.signed_) {
             return a.signed_;
         }
@@ -406,53 +405,53 @@ namespace msr {
         }
         return true;
     }
-    large_int operator<<(const large_int &a, const large_int::shift_type &b) {
+    large_int operator<<(const large_int &a, const large_int::shift_type &b) MSR_NOEXCEPT {
         auto c = a;
         return c <<= b;
     }
-    large_int operator>>(const large_int &a, const large_int::shift_type &b) {
+    large_int operator>>(const large_int &a, const large_int::shift_type &b) MSR_NOEXCEPT {
         auto c = a;
         return c >>= b;
     }
-    large_int operator&(const large_int &a, const large_int &b) {
+    large_int operator&(const large_int &a, const large_int &b) MSR_NOEXCEPT {
         auto c = a;
         return c &= b;
     }
-    large_int operator|(const large_int &a, const large_int &b) {
+    large_int operator|(const large_int &a, const large_int &b) MSR_NOEXCEPT {
         auto c = a;
         return c |= b;
     }
-    large_int operator^(const large_int &a, const large_int &b) {
+    large_int operator^(const large_int &a, const large_int &b) MSR_NOEXCEPT {
         auto c = a;
         return c ^= b;
     }
-    large_int operator+(const large_int &a, const large_int &b) {
+    large_int operator+(const large_int &a, const large_int &b) MSR_NOEXCEPT {
         large_int c = a;
         c += b;
         return c;
     }
-    large_int operator-(const large_int &a, const large_int &b) {
+    large_int operator-(const large_int &a, const large_int &b) MSR_NOEXCEPT {
         large_int c = a;
         c -= b;
         return c;
     }
-    large_int operator*(const large_int &a, const large_int &b) {
+    large_int operator*(const large_int &a, const large_int &b) MSR_NOEXCEPT {
         auto c = a;
         return c *= b;
     }
-    large_int operator/(const large_int &a, const large_int &b) {
+    large_int operator/(const large_int &a, const large_int &b) throw(large_int::divide_by_zero) {
         auto c = a;
         return c /= b;
     }
-    large_int operator%(const large_int &a, const large_int &b) {
+    large_int operator%(const large_int &a, const large_int &b) throw(large_int::divide_by_zero) {
         auto c = a;
         return c %= b;
     }
-    large_int::operator bool() const {
+    large_int::operator bool() const MSR_NOEXCEPT {
         return num_.size() != 1 || *num_.rbegin() != 0;
     }
     template <unsigned int Ary, class Char>
-    std::basic_ostream<Char> &output(std::basic_ostream<Char> &os, const large_int &n) {
+    std::basic_ostream<Char> &output(std::basic_ostream<Char> &os, const large_int &n) MSR_NOEXCEPT {
         if (n.signed_) {
             os << '-';
         }
@@ -504,7 +503,7 @@ namespace msr {
         return os;
     }
     template <class Char>
-    std::basic_ostream<Char> &operator<<(std::basic_ostream<Char> &os, const large_int &n) {
+    std::basic_ostream<Char> &operator<<(std::basic_ostream<Char> &os, const large_int &n) MSR_NOEXCEPT {
         const auto &flags = os.flags();
         if (flags & std::ios::oct) {
             return output<8>(os, n);

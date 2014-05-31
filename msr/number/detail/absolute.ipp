@@ -13,7 +13,7 @@ namespace msr {
     inline long long abs(const long long &n) {
         return std::abs(n);
     }
-    inline large_int abs(const large_int &n) {
+    inline large_int abs(const large_int &n) MSR_NOEXCEPT {
         auto m = n;
         m.signed_ = false;
         return m;
