@@ -37,8 +37,8 @@ namespace msr {
         friend bool operator>=(const self_type &a, const self_type &b);
         friend self_type operator<<(const self_type &a, const shift_type &b);
         friend self_type operator>>(const self_type &a, const shift_type &b);
-        self_type &operator<<=(const shift_type &b);
-        self_type &operator>>=(const shift_type &b);
+        self_type &operator<<=(const shift_type &another);
+        self_type &operator>>=(const shift_type &another);
         self_type operator+() const;
         friend self_type operator+(const self_type &a, const self_type &b);
         self_type &operator+=(const self_type &another);
@@ -53,6 +53,8 @@ namespace msr {
         self_type &operator*=(const self_type &another);
         friend self_type operator/(const self_type &a, const self_type &b);
         self_type &operator/=(const self_type &another);
+        self_type abs() const;
+        friend self_type abs(const self_type &n);
         explicit operator bool() const;
         template <class Char>
         friend std::basic_ostream<Char>

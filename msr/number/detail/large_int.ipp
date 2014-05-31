@@ -134,8 +134,8 @@ namespace msr {
         auto c = a;
         return c >>= b;
     }
-    large_int &large_int::operator<<=(const shift_type &b) {
-        auto div = std::lldiv(b, unit_bits);
+    large_int &large_int::operator<<=(const shift_type &another) {
+        auto div = std::lldiv(another, unit_bits);
         using container = decltype(num_);
         container c(div.quot + num_.size());
         std::copy(begin(num_), end(num_), begin(c) + div.quot);
@@ -153,8 +153,8 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator>>=(const shift_type &b) {
-        auto div = std::lldiv(b, unit_bits);
+    large_int &large_int::operator>>=(const shift_type &another) {
+        auto div = std::lldiv(another, unit_bits);
         if (num_.size() - div.quot <= 0) {
             return (*this = 0);
         }
@@ -300,8 +300,7 @@ namespace msr {
             }
             c = 0;
             for (std::size_t j = 0; j < num_.size(); j++) {
-                c = static_cast<dual_type>(num_[j]);
-                c += part[j];
+                c = static_cast<dual_type>(num_[j]) + part[j] + c;
                 num_[j] = static_cast<unit_type>(c);
                 c >>= unit_bits;
             }
@@ -322,17 +321,34 @@ namespace msr {
     }
     large_int &large_int::operator/=(const self_type &another) {
         if (!another) {
-            throw std::string("Division By Zero!!!");
+            throw std::string("Divided By Zero!!!");
         }
-        signed_ = signed_ & another.signed_;
-        if (num_.size() < another.num_.size()) {
-            num_ = {0};
+        signed_ = signed_ ^ another.signed_;
+        self_type a = abs(), b = another.abs();
+        self_type min = 0, max = a;
+        self_type mean, product;
+        while (min != max) {
+            mean = std::move(((max + min) >> 1) + 1);
+            product = std::move(mean * b);
+            if (product > a) {
+                max = std::move(mean - 1);
+            } else {
+                min = std::move(mean);
+            }
         }
-        auto a = num_;
-        auto &b = another.num_;
-        num_ = decltype(num_)(a.size() - b.size() + 1);
-        
+        num_ = std::move(min.num_);
+        if (num_.size() == 1 && *num_.rbegin() == 0) {
+            signed_ = false;
+        }
         return *this;
+    }
+    large_int large_int::abs() const {
+        auto a = *this;
+        a.signed_ = false;
+        return a;
+    }
+    large_int abs(const large_int &n) {
+        return n.abs();
     }
     large_int::operator bool() const {
         return num_.size() != 1 || *num_.rbegin() != 0;
