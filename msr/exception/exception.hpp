@@ -2,50 +2,56 @@
 #define MSR_EXCEPTION_EXCEPTION_HPP_INCLUDED
 
 #include <exception>
+#include <ios>
 #include <string>
 #include <msr/compatibility/exception.hpp>
 
 namespace msr {
     class exception {
     public:
-        using self = exception;
+        using self_type = exception;
         using id_t = std::uint32_t;
     public:
-        exception(const id_t &base_id, const id_t &id, const char *prefix, const char *what = "(null)"):
-            id_(base_id + id), what_(what), prefix_(std::string("msr::") + prefix) {}
-        exception(const self &another):
-            id_(another.id_), prefix_(another.prefix_), what_(another.what_) {}
-        exception(self &&another):
-            id_(std::move(another.id_)), prefix_(std::move(another.prefix_)), what_(std::move(another.what_)) {}
+        exception(const id_t &id, const char *module, const char *description = "(undefined)")
+        : id_(id), description_(description), module_(module) {}
+        exception(const self_type &another)
+        : id_(another.id_), module_(another.module_), description_(another.description_) {}
+        exception(self_type &&another)
+        : id_(std::move(another.id_)), module_(std::move(another.module_)), description_(std::move(another.description_)) {}
     public:
-        self &operator=(const self &another) {
+        self_type &operator=(const self_type &another) {
             id_ = another.id_;
-            prefix_ = another.prefix_;
-            what_ = another.what_;
+            module_ = another.module_;
+            description_ = another.description_;
             return *this;
         }
-        self &operator=(self &&another) {
+        self_type &operator=(self_type &&another) {
             id_ = std::move(another.id_);
-            prefix_ = std::move(another.prefix_);
-            what_ = std::move(another.prefix_);
+            module_ = std::move(another.module_);
+            description_ = std::move(another.module_);
             return *this;
         }
-        const bool operator==(const self &another) {
+        const bool operator==(const self_type &another) {
             return id_ == another.id_;
         }
         const id_t &id() const MSR_NOEXCEPT {
             return id_;
         }
-        const char *const prefix() const MSR_NOEXCEPT {
-            return prefix_.c_str();
+        const char *const module() const MSR_NOEXCEPT {
+            return module_.c_str();
         }
-        const char *const what() const MSR_NOEXCEPT {
-            return what_.c_str();
+        const char *const description() const MSR_NOEXCEPT {
+            return description_.c_str();
+        }
+        template <class Char>
+        friend std::basic_ostream<Char> &operator<<(std::basic_ostream<Char> &os, const self_type &e) {
+            os << '[' << e.id_ << "] " << e.module_ << ": " << e.description_;
+            return os;
         }
     private:
         id_t id_;
-        std::string prefix_;
-        std::string what_;
+        std::string module_;
+        std::string description_;
     };
 }
 
