@@ -2,7 +2,7 @@
 #define MSR_NUMBER_DIGIT_HPP_INCLUDED
 
 #include <cstdint>
-#include <iostream>
+#include <ios>
 #include <type_traits>
 
 namespace msr {

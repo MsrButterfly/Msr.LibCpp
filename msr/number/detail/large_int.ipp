@@ -192,7 +192,7 @@ namespace msr {
     large_int &large_int::operator+=(const self_type &another) {
         auto &a = num_;
         auto &b = another.num_;
-        if (signed_ ^ another.signed_) {
+        if (signed_ ^ another.signed_ && another) {
             return *this -= -another;
         }
         std::size_t max_size = std::max(a.size(), b.size());
@@ -221,7 +221,7 @@ namespace msr {
     }
     large_int large_int::operator-() const {
         auto n = *this;
-        if (n != 0) {
+        if (n) {
             n.signed_ = !n.signed_;
         }
         return n;
@@ -234,7 +234,7 @@ namespace msr {
     large_int &large_int::operator-=(const self_type &another) {
         auto &a = num_;
         auto &b = another.num_;
-        if (signed_ ^ another.signed_) {
+        if (signed_ ^ another.signed_ && another) {
             return *this += -another;
         }
         std::size_t max_size = std::max(a.size(), b.size());
@@ -321,10 +321,10 @@ namespace msr {
     }
     large_int &large_int::operator/=(const self_type &another) {
         if (!another) {
-            throw std::string("Divided By Zero!!!");
+            throw divide_by_zero();
         }
         signed_ = signed_ ^ another.signed_;
-        self_type a = abs(), b = another.abs();
+        self_type a = abs(*this), b = abs(another);
         self_type min = 0, max = a;
         self_type mean, product;
         while (min != max) {
@@ -342,13 +342,14 @@ namespace msr {
         }
         return *this;
     }
-    large_int large_int::abs() const {
-        auto a = *this;
-        a.signed_ = false;
-        return a;
+    large_int operator%(const large_int &a, const large_int &b) {
+        auto c = a;
+        return c %= b;
     }
-    large_int abs(const large_int &n) {
-        return n.abs();
+    large_int &large_int::operator%=(const self_type &another) {
+        auto d = div(*this, another);
+        operator=(d.rem);
+        return *this;
     }
     large_int::operator bool() const {
         return num_.size() != 1 || *num_.rbegin() != 0;
