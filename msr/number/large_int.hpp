@@ -11,6 +11,7 @@
 #include "large_int_divide_by_zero.hpp"
 
 namespace msr {
+    namespace detail {}
     class large_int {
     public:
         using self_type = large_int;
@@ -31,21 +32,25 @@ namespace msr {
         std::enable_if<std::is_integral<T>::value>::type>
         large_int(const T &num);
     public:
-        self_type &operator=(const self_type &another);
-        self_type &operator=(self_type &&another);
+        self_type operator~() const;
         self_type operator+() const;
         self_type operator-() const;
-        self_type &operator--();
-        self_type &operator++();
         self_type operator++(int);
         self_type operator--(int);
+        self_type &operator=(const self_type &another);
+        self_type &operator=(self_type &&another);
+        self_type &operator++();
+        self_type &operator--();
+        self_type &operator<<=(const shift_type &another);
+        self_type &operator>>=(const shift_type &another);
+        self_type &operator&=(const self_type &another);
+        self_type &operator|=(const self_type &another);
+        self_type &operator^=(const self_type &another);
         self_type &operator+=(const self_type &another);
         self_type &operator-=(const self_type &another);
         self_type &operator*=(const self_type &another);
         self_type &operator/=(const self_type &another);
         self_type &operator%=(const self_type &another);
-        self_type &operator<<=(const shift_type &another);
-        self_type &operator>>=(const shift_type &another);
         friend bool operator==(const self_type &a, const self_type &b);
         friend bool operator!=(const self_type &a, const self_type &b);
         friend bool operator<(const self_type &a, const self_type &b);
@@ -54,20 +59,22 @@ namespace msr {
         friend bool operator>=(const self_type &a, const self_type &b);
         friend self_type operator<<(const self_type &a, const shift_type &b);
         friend self_type operator>>(const self_type &a, const shift_type &b);
+        friend self_type operator&(const self_type &a, const self_type &b);
+        friend self_type operator|(const self_type &a, const self_type &b);
+        friend self_type operator^(const self_type &a, const self_type &b);
         friend self_type operator+(const self_type &a, const self_type &b);
         friend self_type operator-(const self_type &a, const self_type &b);
         friend self_type operator*(const self_type &a, const self_type &b);
         friend self_type operator/(const self_type &a, const self_type &b);
         friend self_type operator%(const self_type &a, const self_type &b);
         friend div_t<self_type> div(const self_type &a, const self_type &b);
+        explicit operator bool() const;
         friend self_type abs(const self_type &n);
         template <class Char>
         friend std::basic_ostream<Char>
         &operator<<(std::basic_ostream<Char> &os, const self_type &n);
-        explicit operator bool() const;
-    private:
         template <unsigned int Ary, class Char>
-        static std::basic_ostream<Char>
+        friend std::basic_ostream<Char>
         &output(std::basic_ostream<Char> &os, const self_type &n);
     private:
         bool signed_;
