@@ -16,7 +16,7 @@ namespace msr {
         auto r = std::lldiv(a, b);
         return {r.quot, r.rem};
     }
-    inline div_t<large_int> div(const large_int &a, const large_int &b) throw(large_int_divide_by_zero) {
+    inline div_t<large_int> div(const large_int &a, const large_int &b) MSR_THROW(large_int_divide_by_zero) {
         auto d = a / b;
         return {d, a - b * d};
     }

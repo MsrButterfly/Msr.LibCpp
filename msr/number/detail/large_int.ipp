@@ -7,7 +7,7 @@
 
 namespace msr {
     large_int::large_int() MSR_NOEXCEPT
-    : signed_(false), num_{0} {}
+    : signed_(false), num_(0, 1) {}
     large_int::large_int(const self_type &another) MSR_NOEXCEPT
     : signed_(another.signed_), num_(another.num_) {}
     large_int::large_int(self_type &&another) MSR_NOEXCEPT
@@ -272,7 +272,7 @@ namespace msr {
                 c >>= unit_bits;
             }
             if (c) {
-                part[i + a.size()] = c;
+                part[i + a.size()] = static_cast<unit_type>(c);
             }
             c = 0;
             for (std::size_t j = 0; j < num_.size(); ++j) {
@@ -291,7 +291,7 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator/=(const self_type &another) throw(large_int::divide_by_zero) {
+    large_int &large_int::operator/=(const self_type &another) MSR_THROW(large_int::divide_by_zero) {
         if (!another) {
             throw divide_by_zero();
         }
@@ -314,7 +314,7 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator%=(const self_type &another) throw(large_int::divide_by_zero) {
+    large_int &large_int::operator%=(const self_type &another) MSR_THROW(large_int::divide_by_zero) {
         auto d = div(*this, another);
         operator=(d.rem);
         return *this;
@@ -439,11 +439,11 @@ namespace msr {
         auto c = a;
         return c *= b;
     }
-    large_int operator/(const large_int &a, const large_int &b) throw(large_int::divide_by_zero) {
+    large_int operator/(const large_int &a, const large_int &b) MSR_THROW(large_int::divide_by_zero) {
         auto c = a;
         return c /= b;
     }
-    large_int operator%(const large_int &a, const large_int &b) throw(large_int::divide_by_zero) {
+    large_int operator%(const large_int &a, const large_int &b) MSR_THROW(large_int::divide_by_zero) {
         auto c = a;
         return c %= b;
     }
@@ -455,7 +455,7 @@ namespace msr {
         if (n.signed_) {
             os << '-';
         }
-        const std::size_t length = large_int::unit_bits * n.num_.size() / (number_bit_size<Ary>::value - 1) + 1;
+        const std::size_t length = large_int::unit_bits * n.num_.size() / (number_bit_size<Ary>::value - 1) + 2;
         std::vector<digit<Ary>> sum(length, 0u);
         std::vector<digit<Ary>> pow(length, 0u);
         pow[0]++;

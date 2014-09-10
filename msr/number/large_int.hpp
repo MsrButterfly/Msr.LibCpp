@@ -22,7 +22,11 @@ namespace msr {
         using dual_type = uint16_t;
         enum {
             unit_bits = type_bit_size<unit_type>::value,
+#if defined(_MSC_FULL_VER) && _MSC_FULL_VER >= 180021114
+            unit_max = static_cast<unit_type>(-1)
+#else
             unit_max = std::numeric_limits<unit_type>::max()
+#endif
         };
     public:
         large_int() MSR_NOEXCEPT;
@@ -49,8 +53,8 @@ namespace msr {
         self_type &operator+=(const self_type &another) MSR_NOEXCEPT;
         self_type &operator-=(const self_type &another) MSR_NOEXCEPT;
         self_type &operator*=(const self_type &another) MSR_NOEXCEPT;
-        self_type &operator/=(const self_type &another) throw(divide_by_zero);
-        self_type &operator%=(const self_type &another) throw(divide_by_zero);
+        self_type &operator/=(const self_type &another) MSR_THROW(divide_by_zero);
+        self_type &operator%=(const self_type &another) MSR_THROW(divide_by_zero);
         friend bool operator==(const self_type &a, const self_type &b) MSR_NOEXCEPT;
         friend bool operator!=(const self_type &a, const self_type &b) MSR_NOEXCEPT;
         friend bool operator<(const self_type &a, const self_type &b) MSR_NOEXCEPT;
@@ -65,9 +69,9 @@ namespace msr {
         friend self_type operator+(const self_type &a, const self_type &b) MSR_NOEXCEPT;
         friend self_type operator-(const self_type &a, const self_type &b) MSR_NOEXCEPT;
         friend self_type operator*(const self_type &a, const self_type &b) MSR_NOEXCEPT;
-        friend self_type operator/(const self_type &a, const self_type &b) throw(divide_by_zero);
-        friend self_type operator%(const self_type &a, const self_type &b) throw(divide_by_zero);
-        friend div_t<self_type> div(const self_type &a, const self_type &b) throw(divide_by_zero);
+        friend self_type operator/(const self_type &a, const self_type &b) MSR_THROW(divide_by_zero);
+        friend self_type operator%(const self_type &a, const self_type &b) MSR_THROW(divide_by_zero);
+        friend div_t<self_type> div(const self_type &a, const self_type &b) MSR_THROW(divide_by_zero);
         explicit operator bool() const MSR_NOEXCEPT;
         friend self_type abs(const self_type &n) MSR_NOEXCEPT;
         template <class Char>
