@@ -16,10 +16,10 @@ int main(int argc, const char *argv[]) {
             pool.wait();
             auto end = std::chrono::high_resolution_clock::now();
             auto duration = end - begin;
-            printf("%lu threads: Finished in %ldms.\n", i, std::chrono::duration_cast<milliseconds>(duration).count());
+            printf("%zd threads: Finished in %lldms.\n", i, std::chrono::duration_cast<milliseconds>(duration).count());
         }
     } catch (thread_pool::exception &e) {
-        fprintf(stderr, "%s\n", e.what());
+        fprintf(stderr, "%s\n", e.description());
     } catch (std::exception &e) {
         fprintf(stderr, "%s\n", e.what());
     }

@@ -11,8 +11,8 @@ namespace msr {
         using base = exception;
         using id_t = std::uint8_t;
     public:
-        thread_pool_exception(const id_t &id, const char *what = "(null)"):
-        base(0x10020000, static_cast<id_t>(0x0100 + id), "thread_pool_exception", what) {}
+        thread_pool_exception(const id_t &id, const char *module, const char *description = "(undefined)")
+        : base(0x10020000 + id, module, description) {}
     };
 }
 
