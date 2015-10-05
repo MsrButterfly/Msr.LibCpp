@@ -7,20 +7,14 @@ struct information {
     uint16_t age = 18;
 };
 
-using namespace std;
-using namespace msr;
-using namespace network;
-using protocol::ip::tcp;
+using namespace msr::network;
 
-class controller: public observer<client<tcp>> {
+class controller: public tcp_ip_client_observer {
 public:
-    using self = controller;
-    using base = observer;
-public:
-    controller(condition_variable &client_has_been_shutdown):
+    controller(std::condition_variable &client_has_been_shutdown):
         client_has_been_shutdown_(client_has_been_shutdown) {}
 public:
-    void client_did_connect(client_weak_ptr c, connection_ptr n, error e) override {
+    void client_did_connect(client::weak_ptr c, connection::shared_ptr n, error e) override {
         if (auto client_ = try_lock(c)) {
             if (e) {
                 client_->disconnect(n);
@@ -30,7 +24,7 @@ public:
             client_->receive(n, 21);
         }
     }
-    void client_did_send(client_weak_ptr c, connection_ptr n, error e, data d) override {
+    void client_did_send(client::weak_ptr c, connection::shared_ptr n, error e, data d) override {
         if (auto client_ = try_lock(c)) {
             if (e) {
                 client_->disconnect(n);
@@ -42,7 +36,7 @@ public:
         }
         
     }
-    void client_did_receive(client_weak_ptr c, connection_ptr n, error e, data d) override {
+    void client_did_receive(client::weak_ptr c, connection::shared_ptr n, error e, data d) override {
         if (auto client_ = try_lock(c)) {
             if (e) {
                 client_->disconnect(n);
@@ -51,10 +45,10 @@ public:
             client_->send(n, information());
         }
     }
-    void client_did_disconnect(client_weak_ptr c, endpoint p, error e) override {
+    void client_did_disconnect(client::weak_ptr c, endpoint p, error e) override {
         printf("[Disconnected] %s\n", p.address().to_string().c_str());
     }
-    void client_did_cancel(client_weak_ptr c, connection_ptr n, error e) override {
+    void client_did_cancel(client::weak_ptr c, connection::shared_ptr n, error e) override {
         if (auto client_ = try_lock(c)) {
             if (e) {
                 client_->disconnect(n);
@@ -62,27 +56,28 @@ public:
             }
         }
     }
-    void client_did_run(client_weak_ptr c) override {
+    void client_did_run(client::weak_ptr c) override {
         if (auto client_ = try_lock(c)) {
             printf("[Running]\n");
-            client_->connect("msrlab.org", 9999);
+            client_->connect("localhost", 9999);
         }
     }
-    void client_did_shutdown(client_weak_ptr c) override {
+    void client_did_shutdown(client::weak_ptr c) override {
         client_has_been_shutdown_.notify_all();
     }
 public:
     ~controller() {}
 private:
-    condition_variable &client_has_been_shutdown_;
+    std::condition_variable &client_has_been_shutdown_;
 };
 
 int main(int argc, const char *argv[]) {
+    using namespace std;
     mutex m;
     unique_lock<mutex> lock(m);
     condition_variable client_has_been_shutdown;
-    auto s = make_shared<client<tcp>>();
-    s->create_observer<controller>(client_has_been_shutdown);
+    auto s = make_shared<tcp_ip_client>();
+    s->add_observer(make_shared<controller>(client_has_been_shutdown));
     s->run();
     client_has_been_shutdown.wait(lock);
 }
