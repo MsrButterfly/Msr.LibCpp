@@ -5,10 +5,10 @@
 #include <limits>
 #include <type_traits>
 #include <vector>
-#include "absolute.hpp"
-#include "bit.hpp"
-#include "division.hpp"
-#include "large_int_divide_by_zero.hpp"
+#include <msr/number/absolute.hpp>
+#include <msr/number/bit.hpp>
+#include <msr/number/division.hpp>
+#include <msr/number/large_int_divide_by_zero.hpp>
 
 namespace msr {
     namespace detail {}
@@ -77,7 +77,7 @@ namespace msr {
         template <class Char>
         friend std::basic_ostream<Char>
         &operator<<(std::basic_ostream<Char> &os, const self_type &n) MSR_NOEXCEPT;
-        template <unsigned int Ary, class Char>
+        template <unsigned int Ary, class Char, class C>
         friend std::basic_ostream<Char>
         &output(std::basic_ostream<Char> &os, const self_type &n) MSR_NOEXCEPT;
     private:
@@ -86,8 +86,8 @@ namespace msr {
     };
 }
 
-#include "detail/absolute.ipp"
-#include "detail/division.ipp"
-#include "detail/large_int.ipp"
+#include <msr/number/detail/absolute.ipp>
+#include <msr/number/detail/division.ipp>
+#include <msr/number/detail/large_int.ipp>
 
 #endif

@@ -1,9 +1,10 @@
 #ifndef MSR_NUMBER_DETAIL_LARGE_INT_IPP_INCLUDED
 #define MSR_NUMBER_DETAIL_LARGE_INT_IPP_INCLUDED
 
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
-#include "../digit.hpp"
+#include <msr/number/digit.hpp>
 
 namespace msr {
     large_int::large_int() MSR_NOEXCEPT
@@ -91,8 +92,8 @@ namespace msr {
     }
     large_int &large_int::operator<<=(const shift_type &another) MSR_NOEXCEPT {
         auto div = std::lldiv(another, unit_bits);
-        decltype(num_) c(div.quot + num_.size());
-        std::copy(begin(num_), end(num_), begin(c) + div.quot);
+        decltype(num_) c(static_cast<size_t>(div.quot) + num_.size());
+        std::copy(begin(num_), end(num_), begin(c) + static_cast<size_t>(div.quot));
         num_ = std::move(c);
         if (div.rem > 0) {
             dual_type d = 0;
@@ -112,8 +113,8 @@ namespace msr {
         if (num_.size() - div.quot <= 0) {
             return (*this = 0);
         }
-        decltype(num_) c(num_.size() - div.quot);
-        std::copy(begin(num_) + div.quot, end(num_), begin(c));
+        decltype(num_) c(num_.size() - static_cast<size_t>(div.quot));
+        std::copy(begin(num_) + static_cast<size_t>(div.quot), end(num_), begin(c));
         num_ = std::move(c);
         if (div.rem > 0) {
             dual_type d = 0;
@@ -450,7 +451,7 @@ namespace msr {
     large_int::operator bool() const MSR_NOEXCEPT {
         return num_.size() != 1 || *num_.rbegin() != 0;
     }
-    template <unsigned int Ary, class Char>
+    template <unsigned int Ary, class Char, class C = typename std::enable_if<(Ary > 1)>::type>
     std::basic_ostream<Char> &output(std::basic_ostream<Char> &os, const large_int &n) MSR_NOEXCEPT {
         if (n.signed_) {
             os << '-';
@@ -462,7 +463,9 @@ namespace msr {
         std::size_t pow_size = 1;
         auto bit_of = [&](const std::size_t &i) {
             auto div = std::lldiv(i, large_int::unit_bits);
-            return n.num_[div.quot] & (1ll << div.rem);
+            auto quot = static_cast<size_t>(div.quot);
+            auto rem = static_cast<large_int::unit_type>(div.rem);
+            return n.num_[quot] & (1 << rem);
         };
         for (std::size_t i = 0; i < n.num_.size() * large_int::unit_bits; ++i) {
             if (bit_of(i)) {

@@ -47,6 +47,6 @@ namespace msr {
     };
 }
 
-#include "detail/digit.ipp"
+#include <msr/number/detail/digit.ipp>
 
 #endif

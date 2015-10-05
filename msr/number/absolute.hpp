@@ -1,8 +1,8 @@
 #ifndef MSR_NUMBER_ABSOLUTE_HPP_INCLUDED
 #define MSR_NUMBER_ABSOLUTE_HPP_INCLUDED
 
-#include "exception.hpp"
-#include "large_int.hpp"
+#include <msr/number/exception.hpp>
+#include <msr/number/large_int.hpp>
 
 namespace msr {
     inline int abs(const int &n);

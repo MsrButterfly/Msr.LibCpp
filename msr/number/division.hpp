@@ -1,8 +1,8 @@
 #ifndef MSR_NUMBER_DIVISION_HPP_INCLUDED
 #define MSR_NUMBER_DIVISION_HPP_INCLUDED
 
-#include "large_int_divide_by_zero.hpp"
-#include "large_int.hpp"
+#include <msr/number/large_int.hpp>
+#include <msr/number/large_int_divide_by_zero.hpp>
 
 namespace msr {
     class large_int;

@@ -1,7 +1,7 @@
 #ifndef MSR_NUMBER_DIVIDE_BY_ZERO_HPP_INCLUDED
 #define MSR_NUMBER_DIVIDE_BY_ZERO_HPP_INCLUDED
 
-#include "exception.hpp"
+#include <msr/number/exception.hpp>
 
 namespace msr {
     class divide_by_zero: public number_exception {
