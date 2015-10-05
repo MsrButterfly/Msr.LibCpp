@@ -3,35 +3,29 @@
 
 #include <memory>
 #include <boost/asio.hpp>
+#include <boost/utility.hpp>
 #include <msr/network/data.hpp>
-#include <msr/network/server_observer.hpp>
 #include <msr/network/tcp_ip_server.hpp>
+#include <msr/utility.hpp>
 
 namespace msr {
     namespace network {
-        template <>
-        class observer<server<protocol::ip::tcp>>: public detail::observer_base {
+        class tcp_ip_server_observer: public observer {
+            MSR_CLASS_TYPE_DEFINATIONS(tcp_ip_server_observer);
         public:
-            using self = observer;
-            using base = observer_base;
-            using server = network::server<protocol::ip::tcp>;
-            using connection = server::connection;
-            using server_weak_ptr = std::weak_ptr<server>;
-            using server_shared_ptr = std::shared_ptr<server>;
-            using connection_ptr = server::connection_ptr;
-            using error = network::error;
-            using data = network::data;
+            using server = tcp_ip_server;
+            using connection = tcp_ip_connection;
             using endpoint = protocol::ip::tcp::endpoint;
         public:
-            virtual void server_did_accept(server_weak_ptr s, connection_ptr c, error e) = 0;
-            virtual void server_did_send(server_weak_ptr s, connection_ptr c, error e, data d) = 0;
-            virtual void server_did_receive(server_weak_ptr s, connection_ptr c, error e, data d) = 0;
-            virtual void server_did_disconnect(server_weak_ptr s, endpoint p, error e) = 0;
-            virtual void server_did_cancel(server_weak_ptr s, connection_ptr c, error e) = 0;
-            virtual void server_did_run(server_weak_ptr s, error e) = 0;
-            virtual void server_did_shutdown(server_weak_ptr s, error e) = 0;
+            virtual void server_did_accept(server::weak_ptr s, connection::shared_ptr c, error e) = 0;
+            virtual void server_did_send(server::weak_ptr s, connection::shared_ptr c, error e, data d) = 0;
+            virtual void server_did_receive(server::weak_ptr s, connection::shared_ptr c, error e, data d) = 0;
+            virtual void server_did_disconnect(server::weak_ptr s, endpoint p, error e) = 0;
+            virtual void server_did_cancel(server::weak_ptr s, connection::shared_ptr c, error e) = 0;
+            virtual void server_did_run(server::weak_ptr s, error e) = 0;
+            virtual void server_did_shutdown(server::weak_ptr s, error e) = 0;
         public:
-            ~observer() {}
+            ~tcp_ip_server_observer() {}
         };
     }
 }

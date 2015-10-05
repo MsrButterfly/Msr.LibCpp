@@ -5,27 +5,24 @@
 #include <memory>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
-#include <msr/network/server.hpp>
-#include <msr/network/client.hpp>
 #include <msr/network/protocol.hpp>
-#include <msr/network/connection.hpp>
+#include <msr/utility.hpp>
 
 namespace msr {
     namespace network {
-        template <>
-        class connection<protocol::ip::tcp>: public detail::connection_base {
-            friend server<protocol::ip::tcp>;
-            friend client<protocol::ip::tcp>;
+        class tcp_ip_connection: boost::noncopyable {
+            MSR_CLASS_TYPE_DEFINATIONS(tcp_ip_connection);
+        public:
+            friend class tcp_ip_server;
+            friend class tcp_ip_client;
         private:
             using mutex = boost::shared_mutex;
             using readonly_lock = boost::shared_lock<mutex>;
             using readwrite_lock = boost::unique_lock<mutex>;
         public:
-            using self = connection;
-            using base = connection_base;
-        public:
-            connection(boost::asio::io_service &io_service):
+            tcp_ip_connection(boost::asio::io_service &io_service):
                 socket_(io_service) {}
+        public:
             protocol::ip::tcp::endpoint remote_endpoint() const {
                 return socket_.remote_endpoint();
             }

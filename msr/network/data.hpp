@@ -8,19 +8,19 @@
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
 #include <msr/network/data_exception.hpp>
+#include <msr/utility.hpp>
 
 namespace msr {
     namespace network {
         class data {
+            MSR_CLASS_TYPE_DEFINATIONS(data);
         public:
-            using self = data;
             using exception = data_exception;
-            using unit_t = std::uint8_t;
-            using size_t = std::size_t;
+            using unit_t = uint8_t;
         public:
             data();
-            data(const self &another);
-            data(self &&another);
+            data(const self_type &another);
+            data(self_type &&another);
             data(const size_t &size);
             template <class T>
             data(const T &value);
@@ -37,20 +37,20 @@ namespace msr {
             template <class C>
             data(const std::basic_string<C> &s);
         public:
-            self &operator=(const self &another);
-            self &operator=(self &&another);
+            self_type &operator=(const self_type &another);
+            self_type &operator=(self_type &&another);
             template <class T>
-            self &operator=(const T &value);
+            self_type &operator=(const T &value);
             template <class T, size_t N>
-            self &operator=(const T (&a)[N]);
+            self_type &operator=(const T (&a)[N]);
             template <class T, size_t N>
-            self &operator=(const std::array<T, N> &a);
+            self_type &operator=(const std::array<T, N> &a);
             template <class T, size_t N>
-            self &operator=(const boost::array<T, N> &a);
+            self_type &operator=(const boost::array<T, N> &a);
             template <class T>
-            self &operator=(const std::vector<T> &v);
+            self_type &operator=(const std::vector<T> &v);
             template <class C>
-            self &operator=(const std::basic_string<C> &s);
+            self_type &operator=(const std::basic_string<C> &s);
         public:
             const size_t &size() const;
             void resize(const size_t &size);
