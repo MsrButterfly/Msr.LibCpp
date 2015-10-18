@@ -54,9 +54,9 @@ namespace msr {
             T value = 0;
             byte bytes[sizeof(T)];
         } ret;
-        if (current_endian() == endian::little_endian) {
+        if (is_little_endian()) {
             memcpy(&ret, num_.data(), num_.size());
-        } else if (current_endian() == endian::big_endian) {
+        } else if (is_big_endian()) {
             auto it = rbegin(ret.bytes);
 #if defined(_MSC_VER) && _SECURE_SCL == 1
             // Tricking the Secure SCL.
@@ -284,9 +284,11 @@ namespace msr {
         if (signed_ ^ another.signed_ && another) {
             return *this += -another;
         }
-        size_t max_size = std::max(a.size(), b.size());
-        while (a.size() < max_size) {
-            a.push_back(0);
+        auto a_size = a.size();
+        size_t max_size = std::max(a_size, b.size());
+        if (a_size < max_size) {
+            a.resize(max_size);
+            std::fill(a.begin() + a_size, a.end(), 0);
         }
         dual_byte c = 0;
         for (size_t i = 0; i < max_size; ++i) {
@@ -330,7 +332,7 @@ namespace msr {
         num_ = decltype(num_)(a.size() + b.size());
         decltype(num_) part(a.size() + b.size());
         for (size_t i = 0; i < b.size(); ++i) {
-            memset(&part[0], 0, part.size() * sizeof(byte));
+            std::fill(part.begin(), part.end(), 0);
             dual_byte c = 0;
             for (size_t j = 0; j < a.size(); ++j) {
                 c = static_cast<dual_byte>(a[j]) * static_cast<dual_byte>(b[i]) + c;

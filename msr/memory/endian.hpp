@@ -4,23 +4,31 @@
 #include <cstdint>
 
 namespace msr {
+
+    // reinterpret_cast is not allowed in constexpr in C++11,
+    // and I don't want to import Boost.Endian.
     
     namespace detail {
+        union endian_test_t {
+            uint32_t val;
+            uint8_t bytes[4];
+        } const endian_test_var = {0x01020304};
+    }
 
-        uint32_t endian_test_var = 0x01020304UL;
+    bool is_big_endian() {
+        return detail::endian_test_var.bytes[0] == 0x01;
+    }
 
-        constexpr bool is_big_endian() {
-            return (uint8_t &)endian_test_var == 0x01;
-        }
+    bool is_little_endian() {
+        return detail::endian_test_var.bytes[0] == 0x04;
+    }
 
-        constexpr bool is_little_endian() {
-            return (uint8_t &)endian_test_var == 0x04;
-        }
+    bool is_pdp_endian() {
+        return detail::endian_test_var.bytes[0] == 0x02;
+    }
 
-        constexpr bool is_pdp_endian() {
-            return (uint8_t &)endian_test_var == 0x02;
-        }
-
+    bool is_unknown_endian() {
+        return !is_big_endian() && !is_little_endian() && !is_pdp_endian();
     }
 
     enum class endian {
@@ -30,10 +38,10 @@ namespace msr {
         unknown_endian
     };
 
-    constexpr endian current_endian() {
-        return detail::is_big_endian() ? endian::big_endian :
-            detail::is_little_endian() ? endian::little_endian :
-            detail::is_pdp_endian() ? endian::pdp_endian :
+    endian current_endian() {
+        return is_big_endian() ? endian::big_endian :
+            is_little_endian() ? endian::little_endian :
+            is_pdp_endian() ? endian::pdp_endian :
             endian::unknown_endian;
     }
 
