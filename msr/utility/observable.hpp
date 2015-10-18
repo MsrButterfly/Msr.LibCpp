@@ -37,7 +37,7 @@ namespace msr {
             auto _this = std::weak_ptr<Observable>(std::static_pointer_cast<Observable>(shared_from_this()));
             for (auto &o : observers_) {
                 if (auto _o = dynamic_cast<Observer *>(o.get())) {
-                    std::invoke(f, _o, _this);
+                    _o.*f(_this);
                 }
             }
         }
@@ -46,7 +46,7 @@ namespace msr {
             auto _this = std::weak_ptr<Observable>(std::static_pointer_cast<Observable>(shared_from_this()));
             for (auto &o : observers_) {
                 if (auto _o = dynamic_cast<Observer *>(o.get())) {
-                    std::invoke(f, _o, _this, args...);
+                   _o.*f(_this, args...);
                 }
             }
         }
