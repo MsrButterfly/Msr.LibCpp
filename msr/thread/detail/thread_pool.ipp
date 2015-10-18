@@ -1,28 +1,32 @@
 #ifndef MSR_THREAD_DETAIL_THREAD_POOL_IPP_INCLUDED
 #define MSR_THREAD_DETAIL_THREAD_POOL_IPP_INCLUDED
 
+#include <chrono>
 #include <msr/thread/detail/debug.hpp>
 
 namespace msr {
-    thread_pool::thread_pool(const std::size_t size):
-        loop_(true), stopped_(true), size_(size) {
+
+    thread_pool::thread_pool(const size_t size)
+    : loop_(true), stopped_(true), size_(size) {
         run();
     }
+    
     void thread_pool::run() {
         readwrite_lock lock(thread_mutex_);
         if (!stopped()) {
             return;
         }
         loop_ = true;
-        for (unsigned int i = 0; i < size_; i++) {
-            threads_.insert(std::unique_ptr<thread>(new thread(&self::task_loop, this)));
+        for (size_t i = 0; i < size_; i++) {
+            threads_.insert(std::make_unique<std::thread>(&self_type::task_loop, this));
         }
         stopped_ = false;
     }
+    
     void thread_pool::stop() {
         readwrite_lock thread_lock(thread_mutex_);
         if (unsafe_this_thread_is_in()) {
-            throw exception(1, "stop(): Thread is trying to join itself.");
+            throw reverse_control(MSR_FUNCTION_SIGNATURE, "");
         }
         if (stopped()) {
             return;
@@ -43,48 +47,59 @@ namespace msr {
         threads_.clear();
         stopped_ = true;
     }
+    
     bool thread_pool::stopped() const {
         return stopped_;
     }
+    
     bool thread_pool::this_thread_is_in() const {
         readonly_lock lock(thread_mutex_);
         return unsafe_this_thread_is_in();
     }
+    
     void thread_pool::post(task task_) {
         readwrite_lock lock(task_mutex_);
         task_queue_.push_back(task_);
         new_task_posted_.notify_one();
     }
+    
     void thread_pool::wait() const {
         readonly_lock lock(task_mutex_);
         if (unsafe_this_thread_is_in()) {
-            throw exception(2, "wait(): Thread is trying to wait itself.");
+            throw reverse_control(MSR_FUNCTION_SIGNATURE, "");
         }
         if (!unsafe_task_queue_is_empty()) {
             task_queue_is_empty_.wait(lock);
         }
     }
+    
     void thread_pool::clear_task_queue() {
         readwrite_lock lock(task_mutex_);
         unsafe_clear_task_queue();
         task_queue_is_empty_.notify_all();
     }
+    
     bool thread_pool::task_queue_is_empty() const {
         readonly_lock lock(task_mutex_);
         return unsafe_task_queue_is_empty();
     }
-    std::size_t thread_pool::size() const {
+    
+    size_t thread_pool::size() const {
         return size_;
     }
-    void thread_pool::resize(const std::size_t size) {
-        if (!stopped()) {
-            throw exception(3, "resize(): Trying to resize a running thread pool.");
-        }
+    
+    void thread_pool::resize(const size_t size) {
+        auto stopped_before = stopped();
+        stop();
         size_ = size;
+        if (!stopped_before) {
+            run();
+        }
     }
+    
     void thread_pool::task_loop() {
-        using namespace boost::chrono;
-        using namespace this_thread;
+        using namespace std::chrono;
+        using namespace std::this_thread;
         while (loop_) {
             task _task;
             {
@@ -139,8 +154,9 @@ namespace msr {
         printf("%s\n", ss.str().c_str());
 #endif
     }
+    
     bool thread_pool::unsafe_this_thread_is_in() const {
-        auto id = this_thread::get_id();
+        auto id = std::this_thread::get_id();
         for (const auto &t : threads_) {
             if (t->get_id() == id) {
                 return true;
@@ -148,15 +164,19 @@ namespace msr {
         }
         return false;
     }
+    
     void thread_pool::unsafe_clear_task_queue() {
         task_queue_.clear();
     }
+    
     bool thread_pool::unsafe_task_queue_is_empty() const {
         return task_queue_.empty();
     }
+    
     thread_pool::~thread_pool() {
         stop();
     }
+    
 }
 
 #endif
