@@ -1,59 +1,67 @@
 #ifndef MSR_EXCEPTION_EXCEPTION_HPP_INCLUDED
 #define MSR_EXCEPTION_EXCEPTION_HPP_INCLUDED
 
-#include <exception>
-#include <ios>
+#include <ostream>
 #include <string>
-#include <msr/compatibility/exception.hpp>
+#include <utility>
+#include <msr/utility.hpp>
+
+#if defined(_MSC_FULL_VER) && _MSC_FULL_VER >= 180021114
+#   pragma warning(disable: 4290)
+#endif
 
 namespace msr {
+    
     class exception {
+        MSR_CLASS_TYPE_DEFINATIONS(exception);
     public:
-        using self_type = exception;
-        using id_t = std::uint32_t;
-    public:
-        exception(const id_t &id, const char *module, const char *description = "(undefined)")
-        : id_(id), description_(description), module_(module) {}
-        exception(const self_type &another)
-        : id_(another.id_), module_(another.module_), description_(another.description_) {}
-        exception(self_type &&another)
-        : id_(std::move(another.id_)), module_(std::move(another.module_)), description_(std::move(another.description_)) {}
+        exception(const char *func, const std::string &what)
+        : what_(what), func_(func) {}
+        exception(const self_type &another) {
+            *this = another;
+        }
+        exception(self_type &&another) {
+            *this = std::move(another);
+        }
     public:
         self_type &operator=(const self_type &another) {
-            id_ = another.id_;
-            module_ = another.module_;
-            description_ = another.description_;
+            func_ = another.func_;
+            what_ = another.what_;
             return *this;
         }
         self_type &operator=(self_type &&another) {
-            id_ = std::move(another.id_);
-            module_ = std::move(another.module_);
-            description_ = std::move(another.module_);
+            func_ = std::move(another.func_);
+            what_ = std::move(another.what_);
             return *this;
         }
-        const bool operator==(const self_type &another) {
-            return id_ == another.id_;
+        virtual std::string function() const noexcept final {
+            return func_;
         }
-        const id_t &id() const MSR_NOEXCEPT {
-            return id_;
+        virtual std::string what() const noexcept {
+            return what_;
         }
-        const char *const module() const MSR_NOEXCEPT {
-            return module_.c_str();
-        }
-        const char *const description() const MSR_NOEXCEPT {
-            return description_.c_str();
-        }
-        template <class Char>
-        friend std::basic_ostream<Char> &operator<<(std::basic_ostream<Char> &os, const self_type &e) {
-            os << '[' << e.id_ << "] " << e.module_ << ": " << e.description_;
-            return os;
-        }
+    public:
+        virtual ~exception() {}
+    protected:
+        std::string what_;
     private:
-        id_t id_;
-        std::string module_;
-        std::string description_;
+        std::string func_; // MSR_FUNCTION_SIGNATURE
     };
+    
 }
 
-#endif
+template <class Char>
+std::basic_ostream<Char> &operator<<(std::basic_ostream<Char> &os, const msr::exception &e) {
+    os << "[Exception]"
+        << "\n    Type: " << typeid(e).name()
+        << "\n    Function: " << e.function().c_str()
+        << "\n    Description: " << e.what().c_str();
+    return os;
+}
 
+#include <msr/exception/divide_by_zero.hpp>
+#include <msr/exception/out_of_range.hpp>
+#include <msr/exception/reverse_control.hpp>
+#include <msr/exception/type_mismatch.hpp>
+
+#endif
