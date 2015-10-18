@@ -11,7 +11,7 @@
         using observer = type
 
 namespace msr {
-
+        
     class observer {
         MSR_CLASS_TYPE_DEFINATIONS(observer);
     public:
@@ -55,7 +55,7 @@ namespace msr {
     private:
         std::set<observer::shared_ptr> observers_;
     };
-
+        
 }
 
 #endif
