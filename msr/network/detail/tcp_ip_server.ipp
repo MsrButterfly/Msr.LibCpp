@@ -3,10 +3,12 @@
 
 namespace msr {
     namespace network {
-        tcp_ip_server::tcp_ip_server(const endpoint &p):
-            endpoint_(p), acceptor_(service_, p, true) {
+    
+        tcp_ip_server::tcp_ip_server(const endpoint &p)
+        : endpoint_(p), acceptor_(service_, p, true) {
             service_.stop();
         }
+        
         void tcp_ip_server::accept() {
             auto c = std::make_shared<connection>(service_);
             acceptor_.async_accept(c->socket_, [c, this](error e) mutable {
@@ -18,6 +20,7 @@ namespace msr {
                 broadcast(&observer::server_did_accept, c, e);
             });
         }
+        
         void tcp_ip_server::send(connection::shared_ptr c, data d) {
             using namespace boost::asio;
             assert(c);
@@ -27,6 +30,7 @@ namespace msr {
                 broadcast(&observer::server_did_send, c, e, *copy);
             });
         }
+        
         void tcp_ip_server::receive(connection::shared_ptr c, size_t size) {
             using namespace boost::asio;
             assert(c);
@@ -36,6 +40,7 @@ namespace msr {
                 broadcast(&observer::server_did_receive, c, e, *buffer);
             });
         }
+        
 #if BOOST_ASIO_ENABLE_CANCELIO
         void tcp_ip_server::cancel(connection::shared_ptr c) {
             assert(c);
@@ -46,6 +51,7 @@ namespace msr {
             });
         }
 #endif
+
         void tcp_ip_server::disconnect(connection::shared_ptr c) {
             assert(c);
             error e;
@@ -59,6 +65,7 @@ namespace msr {
                 broadcast(&observer::server_did_disconnect, p, e);
             });
         }
+        
         void tcp_ip_server::run() {
             using namespace boost::asio;
             if (!is_running()) {
@@ -78,6 +85,7 @@ namespace msr {
                 broadcast(&observer::server_did_run, e);
             });
         }
+        
         void tcp_ip_server::shutdown() {
             using namespace boost::asio;
             for (auto &c : connections_) {
@@ -91,19 +99,22 @@ namespace msr {
                 broadcast(&observer::server_did_shutdown, e);
             });
         }
+        
         bool tcp_ip_server::is_running() const {
             return !is_shutdown();
         }
+        
         bool tcp_ip_server::is_shutdown() const {
             return service_.stopped();
         }
+        
         tcp_ip_server::~tcp_ip_server() {
             if (is_running()) {
                 shutdown();
             }
         }
+        
     }
 }
 
 #endif
-

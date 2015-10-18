@@ -10,6 +10,7 @@
 
 namespace msr {
     namespace network {
+        
         class tcp_ip_server_observer: public observer {
             MSR_CLASS_TYPE_DEFINATIONS(tcp_ip_server_observer);
         public:
@@ -27,6 +28,7 @@ namespace msr {
         public:
             ~tcp_ip_server_observer() {}
         };
+        
     }
 }
 

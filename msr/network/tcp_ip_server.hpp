@@ -13,7 +13,9 @@
 
 namespace msr {
     namespace network {
+        
         class tcp_ip_server_observer;
+        
         class tcp_ip_server: boost::noncopyable, public observable {
             MSR_CLASS_TYPE_DEFINATIONS(tcp_ip_server);
             MSR_OBSERVER_TYPE(tcp_ip_server_observer);
@@ -47,6 +49,7 @@ namespace msr {
             endpoint endpoint_;
             std::set<connection::shared_ptr> connections_;
         };
+        
     }
 }
 

@@ -12,7 +12,9 @@
 
 namespace msr {
     namespace network {
+        
         class tcp_ip_client_observer;
+        
         class tcp_ip_client: boost::noncopyable, public observable {
             MSR_CLASS_TYPE_DEFINATIONS(tcp_ip_client);
             MSR_OBSERVER_TYPE(tcp_ip_client_observer);
@@ -45,6 +47,7 @@ namespace msr {
             boost::asio::io_service service_;
             std::set<connection::shared_ptr> connections_;
         };
+        
     }
 }
 

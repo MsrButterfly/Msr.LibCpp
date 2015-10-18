@@ -5,7 +5,9 @@
 
 namespace msr {
     namespace network {
+        
         namespace protocol = boost::asio;
+        
     }
 }
 

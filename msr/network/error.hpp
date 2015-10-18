@@ -5,9 +5,10 @@
 
 namespace msr {
     namespace network {
+        
         using error = boost::system::error_code;
+        
     }
 }
 
 #endif
-

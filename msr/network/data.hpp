@@ -7,16 +7,14 @@
 #include <vector>
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
-#include <msr/network/data_exception.hpp>
+#include <msr/memory.hpp>
 #include <msr/utility.hpp>
 
 namespace msr {
     namespace network {
+        
         class data {
             MSR_CLASS_TYPE_DEFINATIONS(data);
-        public:
-            using exception = data_exception;
-            using unit_t = uint8_t;
         public:
             data();
             data(const self_type &another);
@@ -65,18 +63,18 @@ namespace msr {
         public:
             ~data();
         private:
-            static inline void allocate(unit_t *&data_, const size_t &size);
-            static inline void deallocate(unit_t *&data_);
-            static inline void reallocate(unit_t *&data_, const size_t &size);
+            static inline void allocate(byte *&data_, const size_t &size);
+            static inline void deallocate(byte *&data_);
+            static inline void reallocate(byte *&data_, const size_t &size);
             static inline void copy(void *data_d, const void *data_s, size_t size);
         private:
-            unit_t *data_;
+            byte *data_;
             size_t size_;
         };
+        
     }
 }
 
 #include <msr/network/detail/data.ipp>
 
 #endif
-

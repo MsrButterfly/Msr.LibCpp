@@ -7,9 +7,11 @@
 
 namespace msr {
     namespace network {
+    
         tcp_ip_client::tcp_ip_client() {
             service_.stop();
         }
+        
         void tcp_ip_client::connect(const std::string &host, const uint16_t &port) {
             using namespace std;
             using namespace boost::asio;
@@ -22,6 +24,7 @@ namespace msr {
                 broadcast(&observer::client_did_connect, c, e);
             });
         }
+        
         void tcp_ip_client::connect(const endpoint &p) {
             using namespace std;
             using namespace boost::asio;
@@ -33,6 +36,7 @@ namespace msr {
                 broadcast(&observer::client_did_connect, c, e);
             });
         }
+        
         void tcp_ip_client::send(connection::shared_ptr c, data d) {
             using namespace std;
             using namespace boost::asio;
@@ -43,6 +47,7 @@ namespace msr {
                 broadcast(&observer::client_did_send, c, e, *copy);
             });
         }
+        
         void tcp_ip_client::receive(connection::shared_ptr c, size_t size) {
             using namespace std;
             using namespace boost::asio;
@@ -53,6 +58,7 @@ namespace msr {
                 broadcast(&observer::client_did_receive, c, e, *buffer);
             });
         }
+        
 #if BOOST_ASIO_ENABLE_CANCELIO
         void tcp_ip_client::cancel(connection::shared_ptr c) {
             assert(c);
@@ -63,6 +69,7 @@ namespace msr {
             });
         }
 #endif
+
         void tcp_ip_client::disconnect(connection::shared_ptr c) {
             assert(c);
             error e;
@@ -76,6 +83,7 @@ namespace msr {
                 broadcast(&observer::client_did_disconnect, p, e);
             });
         }
+        
         void tcp_ip_client::run() {
             using namespace boost::asio;
             if (!is_running()) {
@@ -91,6 +99,7 @@ namespace msr {
                 broadcast(&observer::client_did_run);
             });
         }
+        
         void tcp_ip_client::shutdown() {
             using namespace boost::asio;
             for (auto &c : connections_) {
@@ -102,19 +111,22 @@ namespace msr {
                 broadcast(&observer::client_did_shutdown);
             });
         }
+        
         bool tcp_ip_client::is_running() const {
             return !is_shutdown();
         }
+        
         bool tcp_ip_client::is_shutdown() const {
             return service_.stopped();
         }
+        
         tcp_ip_client::~tcp_ip_client() {
             if (is_running()) {
                 shutdown();
             }
         }
+        
     }
 }
 
 #endif
-

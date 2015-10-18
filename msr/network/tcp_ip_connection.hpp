@@ -10,6 +10,7 @@
 
 namespace msr {
     namespace network {
+        
         class tcp_ip_connection: boost::noncopyable {
             MSR_CLASS_TYPE_DEFINATIONS(tcp_ip_connection);
         public:
@@ -30,6 +31,7 @@ namespace msr {
             protocol::ip::tcp::socket socket_;
             mutex data_mutex_;
         };
+        
     }
 }
 

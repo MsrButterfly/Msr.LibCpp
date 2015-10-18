@@ -2,9 +2,7 @@
 #define MSR_NETWORK_NETWORK_HPP_INCLUDED
 
 #include <msr/network/data.hpp>
-#include <msr/network/data_exception.hpp>
 #include <msr/network/error.hpp>
-#include <msr/network/exception.hpp>
 #include <msr/network/protocol.hpp>
 #include <msr/network/tcp_ip_client.hpp>
 #include <msr/network/tcp_ip_client_observer.hpp>
