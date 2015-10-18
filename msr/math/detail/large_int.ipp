@@ -1,42 +1,91 @@
-#ifndef MSR_NUMBER_DETAIL_LARGE_INT_IPP_INCLUDED
-#define MSR_NUMBER_DETAIL_LARGE_INT_IPP_INCLUDED
+#ifndef MSR_MATH_DETAIL_LARGE_INT_IPP_INCLUDED
+#define MSR_MATH_DETAIL_LARGE_INT_IPP_INCLUDED
 
 #include <algorithm>
 #include <iomanip>
+#include <iterator>
 #include <sstream>
-#include <msr/number/digit.hpp>
+#include <utility>
+#include <msr/exception.hpp>
+#include <msr/math/detail/digit.hpp>
+#include <msr/memory.hpp>
+#include <msr/utility.hpp>
 
 namespace msr {
-    large_int::large_int() MSR_NOEXCEPT
+
+    large_int::large_int() noexcept
     : signed_(false), num_(0, 1) {}
-    large_int::large_int(const self_type &another) MSR_NOEXCEPT
+
+    large_int::large_int(const self_type &another) noexcept
     : signed_(another.signed_), num_(another.num_) {}
-    large_int::large_int(self_type &&another) MSR_NOEXCEPT
+
+    large_int::large_int(self_type &&another) noexcept
     : signed_(another.signed_), num_(std::move(another.num_)) {
         another.signed_ = false;
         another.num_ = {0};
     }
+
     template <class T, class C>
-    large_int::large_int(const T &num) MSR_NOEXCEPT
+    large_int::large_int(const T &num) noexcept
     : signed_(std::is_signed<T>::value && num < 0) {
-        unsigned long long n;
-        n = signed_ ? -num : num;
+        uintmax_t n;
+        n = signed_ ? -(intmax_t)num : num;
         while (n > 0) {
-            num_.push_back(static_cast<unit_type>(n));
-            n >>= unit_bits;
+            num_.push_back(static_cast<byte>(n));
+            n >>= MSR_BITS_PER_BYTE;
         }
         if (num_.size() == 0) {
             num_.push_back(0);
         }
     }
-    large_int large_int::operator~() const MSR_NOEXCEPT {
-        auto n = *this;
-        std::size_t i;
-        for (i = 0; i < n.num_.size() - 1; ++i) {
-            n.num_[i] ^= unit_max;
+
+    template <class T, class C>
+    bool large_int::representable() const noexcept {
+        return *this >= std::numeric_limits<T>::min() && *this <= std::numeric_limits<T>::max();
+    }
+
+    template <class T, class C>
+    T large_int::get() const throw(out_of_range) {
+        using namespace std;
+        if (!representable<T>()) {
+            throw out_of_range(MSR_FUNCTION_SIGNATURE, "");
         }
-        unit_type h = n.num_[i];
-        unit_type u;
+        union {
+            T value = 0;
+            byte bytes[sizeof(T)];
+        } ret;
+        if (current_endian() == endian::little_endian) {
+            memcpy(&ret, num_.data(), num_.size());
+        } else if (current_endian() == endian::big_endian) {
+            auto it = rbegin(ret.bytes);
+#if defined(_MSC_VER) && _SECURE_SCL == 1
+            // Tricking the Secure SCL.
+            // reverse_iterator<byte *> is supported by the implementation,
+            // but not the specification (raw pointer).
+            // https://msdn.microsoft.com/en-us/library/aa985928.aspx
+            auto dest = stdext::make_unchecked_array_iterator(it);
+#else
+            auto dest = it;
+#endif
+            copy(begin(num_), end(num_), dest);
+        }
+        if (signed_) {
+            ret.value = -(intmax_t)ret.value;
+            // ok: with T = int8_t, *this = -128
+            // -(-128) = (~0x80) + 1 = 0x7F + 1 = 0x80 = -128
+            // http://stackoverflow.com/questions/17469804/what-is-128-for-signed-single-byte-char-in-c
+        }
+        return ret.value;
+    }
+
+    large_int large_int::operator~() const noexcept {
+        auto n = *this;
+        size_t i;
+        for (i = 0; i < n.num_.size() - 1; ++i) {
+            n.num_[i] ^= byte_all_one;
+        }
+        byte h = n.num_[i];
+        byte u;
         for (u = 0; h; h >>= 1) {
             u <<= 1;
             ++u;
@@ -50,66 +99,76 @@ namespace msr {
         } else {
             n.num_.resize(n.num_.rend() - p);
         }
-        return n;
+        return std::move(n);
     }
-    large_int large_int::operator+() const MSR_NOEXCEPT {
+
+    large_int large_int::operator+() const noexcept {
         return *this;
     }
-    large_int large_int::operator-() const MSR_NOEXCEPT {
+
+    large_int large_int::operator-() const noexcept {
         auto n = *this;
         if (n) {
             n.signed_ = !n.signed_;
         }
-        return n;
+        return std::move(n);
     }
-    large_int large_int::operator++(int) MSR_NOEXCEPT {
-        auto a = *this;
-        operator+=(1);
-        return a;
-    }
-    large_int large_int::operator--(int) MSR_NOEXCEPT {
+
+    large_int large_int::operator++(int) noexcept {
         auto n = *this;
-        operator-=(1);
-        return n;
+        ++*this;
+        *this += 1;
+        return std::move(n);
     }
-    large_int &large_int::operator++() MSR_NOEXCEPT {
-        return operator+=(1);
+
+    large_int large_int::operator--(int) noexcept {
+        auto n = *this;
+        *this -= 1;
+        return std::move(n);
     }
-    large_int &large_int::operator--() MSR_NOEXCEPT {
-        return operator-=(1);
+
+    large_int &large_int::operator++() noexcept {
+        return *this += 1;
     }
-    large_int &large_int::operator=(const self_type &another) MSR_NOEXCEPT {
+
+    large_int &large_int::operator--() noexcept {
+        return *this += 1;
+    }
+
+    large_int &large_int::operator=(const self_type &another) noexcept {
         signed_ = another.signed_;
         num_ = another.num_;
         return *this;
     }
-    large_int &large_int::operator=(self_type &&another) MSR_NOEXCEPT {
+    large_int &large_int::operator=(self_type &&another) noexcept {
         signed_ = another.signed_;
         num_ = another.num_;
         another.signed_ = false;
         another.num_ = {0};
         return *this;
     }
-    large_int &large_int::operator<<=(const shift_type &another) MSR_NOEXCEPT {
-        auto div = std::lldiv(another, unit_bits);
+
+    large_int &large_int::operator<<=(const size_t &another) noexcept {
+        auto div = std::lldiv(another, MSR_BITS_PER_BYTE);
         decltype(num_) c(static_cast<size_t>(div.quot) + num_.size());
         std::copy(begin(num_), end(num_), begin(c) + static_cast<size_t>(div.quot));
         num_ = std::move(c);
         if (div.rem > 0) {
-            dual_type d = 0;
+            dual_byte d = 0;
             for (auto &i : num_) {
-                d = (static_cast<dual_type>(i) << div.rem) + d;
-                i = static_cast<unit_type>(d);
-                d >>= unit_bits;
+                d = (static_cast<dual_byte>(i) << div.rem) + d;
+                i = static_cast<byte>(d);
+                d >>= MSR_BITS_PER_BYTE;
             }
             if (d) {
-                num_.push_back(static_cast<unit_type>(d));
+                num_.push_back(static_cast<byte>(d));
             }
         }
         return *this;
     }
-    large_int &large_int::operator>>=(const shift_type &another) MSR_NOEXCEPT {
-        auto div = std::lldiv(another, unit_bits);
+
+    large_int &large_int::operator>>=(const size_t &another) noexcept {
+        auto div = std::lldiv(another, MSR_BITS_PER_BYTE);
         if (num_.size() - div.quot <= 0) {
             return (*this = 0);
         }
@@ -117,12 +176,12 @@ namespace msr {
         std::copy(begin(num_) + static_cast<size_t>(div.quot), end(num_), begin(c));
         num_ = std::move(c);
         if (div.rem > 0) {
-            dual_type d = 0;
+            dual_byte d = 0;
             for (auto i = num_.size(); i > 0; i--) {
                 auto j = i - 1;
-                d = ((static_cast<dual_type>(num_[j]) << unit_bits) >> div.rem) + d;
-                num_[j] = static_cast<unit_type>(d >> unit_bits);
-                d <<= unit_bits;
+                d = ((static_cast<dual_byte>(num_[j]) << MSR_BITS_PER_BYTE) >> div.rem) + d;
+                num_[j] = static_cast<byte>(d >> MSR_BITS_PER_BYTE);
+                d <<= MSR_BITS_PER_BYTE;
             }
             if (*num_.rbegin() == 0) {
                 if (num_.size() > 1) {
@@ -135,12 +194,13 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator&=(const large_int &another) MSR_NOEXCEPT {
+
+    large_int &large_int::operator&=(const large_int &another) noexcept {
         auto size = std::min(num_.size(), another.num_.size());
         if (num_.size() > size) {
             num_.resize(size);
         }
-        for (std::size_t i = 0; i < size; ++i) {
+        for (size_t i = 0; i < size; ++i) {
             num_[i] &= another.num_[i];
         }
         decltype(num_)::reverse_iterator p;
@@ -153,9 +213,10 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator|=(const large_int &another) MSR_NOEXCEPT {
+
+    large_int &large_int::operator|=(const large_int &another) noexcept {
         auto size = std::min(num_.size(), another.num_.size());
-        for (std::size_t i = 0; i < size; ++i) {
+        for (size_t i = 0; i < size; ++i) {
             num_[i] |= another.num_[i];
         }
         decltype(num_)::reverse_iterator p;
@@ -168,13 +229,14 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator^=(const large_int &another) MSR_NOEXCEPT {
+
+    large_int &large_int::operator^=(const large_int &another) noexcept {
         auto size = std::min(num_.size(), another.num_.size());
         auto another_size = another.num_.size();
         if (num_.size() < another_size) {
             num_.resize(another_size);
         }
-        for (std::size_t i = 0; i < size; ++i) {
+        for (size_t i = 0; i < size; ++i) {
             num_[i] ^= i < another_size ? another.num_[i] : 0;
         }
         decltype(num_)::reverse_iterator p;
@@ -187,61 +249,63 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator+=(const self_type &another) MSR_NOEXCEPT {
+
+    large_int &large_int::operator+=(const self_type &another) noexcept {
         auto &a = num_;
         auto &b = another.num_;
         if (signed_ ^ another.signed_ && another) {
             return *this -= -another;
         }
-        std::size_t max_size = std::max(a.size(), b.size());
+        size_t max_size = std::max(a.size(), b.size());
         if (a.size() < max_size) {
             a.resize(max_size);
         }
-        dual_type c = 0;
-        for (std::size_t i = 0; i < max_size; ++i) {
-            dual_type ub = 0;
+        dual_byte c = 0;
+        for (size_t i = 0; i < max_size; ++i) {
+            dual_byte ub = 0;
             if (i < b.size()) {
                 ub = b[i];
             } else if (!c) {
                 break;
             }
-            c = static_cast<dual_type>(a[i]) + ub + c;
-            a[i] = static_cast<unit_type>(c);
-            c >>= unit_bits;
+            c = static_cast<dual_byte>(a[i]) + ub + c;
+            a[i] = static_cast<byte>(c);
+            c >>= MSR_BITS_PER_BYTE;
         }
         if (c) {
-            a.push_back(static_cast<unit_type>(c));
+            a.push_back(static_cast<byte>(c));
         }
         return *this;
     }
-    large_int &large_int::operator-=(const self_type &another) MSR_NOEXCEPT {
+
+    large_int &large_int::operator-=(const self_type &another) noexcept {
         auto &a = num_;
         auto &b = another.num_;
         if (signed_ ^ another.signed_ && another) {
             return *this += -another;
         }
-        std::size_t max_size = std::max(a.size(), b.size());
+        size_t max_size = std::max(a.size(), b.size());
         while (a.size() < max_size) {
             a.push_back(0);
         }
-        dual_type c = 0;
-        for (std::size_t i = 0; i < max_size; ++i) {
-            c ^= unit_max;
+        dual_byte c = 0;
+        for (size_t i = 0; i < max_size; ++i) {
+            c ^= byte_all_one;
             c++;
-            c &= unit_max;
-            dual_type ub = 0;
+            c &= byte_all_one;
+            dual_byte ub = 0;
             if (i < b.size()) {
                 ub = b[i];
             } else if (!c) {
                 break;
             }
-            c = static_cast<dual_type>(a[i]) - ub - c;
-            a[i] = static_cast<unit_type>(c);
-            c >>= unit_bits;
+            c = static_cast<dual_byte>(a[i]) - ub - c;
+            a[i] = static_cast<byte>(c);
+            c >>= MSR_BITS_PER_BYTE;
         }
         if (c) {
             for (auto &i : a) {
-                i ^= unit_max;
+                i ^= byte_all_one;
             }
             auto signed__ = signed_;
             signed_ = false;
@@ -258,28 +322,29 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator*=(const self_type &another) MSR_NOEXCEPT {
+
+    large_int &large_int::operator*=(const self_type &another) noexcept {
         auto a = num_;
         auto &b = another.num_;
         signed_ = signed_ ^ another.signed_;
         num_ = decltype(num_)(a.size() + b.size());
         decltype(num_) part(a.size() + b.size());
-        for (std::size_t i = 0; i < b.size(); ++i) {
-            std::memset(&part[0], 0, part.size() * sizeof(unit_type));
-            dual_type c = 0;
-            for (std::size_t j = 0; j < a.size(); ++j) {
-                c = static_cast<dual_type>(a[j]) * static_cast<dual_type>(b[i]) + c;
-                part[i + j] = static_cast<unit_type>(c);
-                c >>= unit_bits;
+        for (size_t i = 0; i < b.size(); ++i) {
+            memset(&part[0], 0, part.size() * sizeof(byte));
+            dual_byte c = 0;
+            for (size_t j = 0; j < a.size(); ++j) {
+                c = static_cast<dual_byte>(a[j]) * static_cast<dual_byte>(b[i]) + c;
+                part[i + j] = static_cast<byte>(c);
+                c >>= MSR_BITS_PER_BYTE;
             }
             if (c) {
-                part[i + a.size()] = static_cast<unit_type>(c);
+                part[i + a.size()] = static_cast<byte>(c);
             }
             c = 0;
-            for (std::size_t j = 0; j < num_.size(); ++j) {
-                c = static_cast<dual_type>(num_[j]) + part[j] + c;
-                num_[j] = static_cast<unit_type>(c);
-                c >>= unit_bits;
+            for (size_t j = 0; j < num_.size(); ++j) {
+                c = static_cast<dual_byte>(num_[j]) + part[j] + c;
+                num_[j] = static_cast<byte>(c);
+                c >>= MSR_BITS_PER_BYTE;
             }
         }
         decltype(num_)::reverse_iterator p;
@@ -292,9 +357,10 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator/=(const self_type &another) MSR_THROW(large_int::divide_by_zero) {
+
+    large_int &large_int::operator/=(const self_type &another) throw(divide_by_zero) {
         if (!another) {
-            throw divide_by_zero();
+            throw divide_by_zero(MSR_FUNCTION_SIGNATURE, "");
         }
         signed_ = signed_ ^ another.signed_;
         self_type a = abs(*this), b = abs(another);
@@ -315,34 +381,30 @@ namespace msr {
         }
         return *this;
     }
-    large_int &large_int::operator%=(const self_type &another) MSR_THROW(large_int::divide_by_zero) {
+
+    large_int &large_int::operator%=(const self_type &another) throw(divide_by_zero) {
         auto d = div(*this, another);
-        operator=(d.rem);
+        *this = d.rem;
         return *this;
     }
-    bool operator==(const large_int &a, const large_int &b) MSR_NOEXCEPT {
-        if ((a.signed_ ^ b.signed_) || a.num_.size() != b.num_.size()) {
-            return false;
-        }
-        for (std::size_t i = 0; i < a.num_.size(); ++i) {
-            if (a.num_[i] != b.num_[i]) {
-                return false;
-            }
-        }
-        return true;
+
+    bool operator==(const large_int &a, const large_int &b) noexcept {
+        return !(a != b);
     }
-    bool operator!=(const large_int &a, const large_int &b) MSR_NOEXCEPT {
+
+    bool operator!=(const large_int &a, const large_int &b) noexcept {
         if ((a.signed_ ^ b.signed_) || a.num_.size() != b.num_.size()) {
             return true;
         }
-        for (std::size_t i = 0; i < a.num_.size(); ++i) {
+        for (size_t i = 0; i < a.num_.size(); ++i) {
             if (a.num_[i] != b.num_[i]) {
                 return true;
             }
         }
         return false;
     }
-    bool operator<(const large_int &a, const large_int &b) MSR_NOEXCEPT {
+
+    bool operator<(const large_int &a, const large_int &b) noexcept {
         if (a.signed_ ^ b.signed_) {
             return a.signed_;
         }
@@ -358,7 +420,8 @@ namespace msr {
         }
         return false;
     }
-    bool operator>(const large_int &a, const large_int &b) MSR_NOEXCEPT {
+
+    bool operator>(const large_int &a, const large_int &b) noexcept {
         if (a.signed_ ^ b.signed_) {
             return b.signed_;
         }
@@ -374,105 +437,92 @@ namespace msr {
         }
         return false;
     }
-    bool operator<=(const large_int &a, const large_int &b) MSR_NOEXCEPT {
-        if (a.signed_ ^ b.signed_) {
-            return a.signed_;
-        }
-        auto &signed_ = a.signed_;
-        if (a.num_.size() != b.num_.size()) {
-            return (a.num_.size() < b.num_.size()) ^ signed_;
-        }
-        for (auto i = a.num_.size(); i > 0; i--) {
-            auto j = i - 1;
-            if (a.num_[j] != b.num_[j]) {
-                return (a.num_[j] < b.num_[j]) ^ signed_;
-            }
-        }
-        return true;
+
+    bool operator<=(const large_int &a, const large_int &b) noexcept {
+        return !(a > b);
     }
-    bool operator>=(const large_int &a, const large_int &b) MSR_NOEXCEPT {
-        if (a.signed_ ^ b.signed_) {
-            return a.signed_;
-        }
-        auto &signed_ = a.signed_;
-        if (a.num_.size() != b.num_.size()) {
-            return (a.num_.size() < b.num_.size()) ^ signed_;
-        }
-        for (auto i = a.num_.size(); i > 0; i--) {
-            auto j = i - 1;
-            if (a.num_[j] != b.num_[j]) {
-                return (a.num_[j] < b.num_[j]) ^ signed_;
-            }
-        }
-        return true;
+
+    bool operator>=(const large_int &a, const large_int &b) noexcept {
+        return !(a < b);
     }
-    large_int operator<<(const large_int &a, const large_int::shift_type &b) MSR_NOEXCEPT {
+
+    large_int operator<<(const large_int &a, const size_t &b) noexcept {
         auto c = a;
-        return c <<= b;
+        return std::move(c <<= b);
     }
-    large_int operator>>(const large_int &a, const large_int::shift_type &b) MSR_NOEXCEPT {
+
+    large_int operator>>(const large_int &a, const size_t &b) noexcept {
         auto c = a;
-        return c >>= b;
+        return std::move(c >>= b);
     }
-    large_int operator&(const large_int &a, const large_int &b) MSR_NOEXCEPT {
+
+    large_int operator&(const large_int &a, const large_int &b) noexcept {
         auto c = a;
-        return c &= b;
+        return std::move(c &= b);
     }
-    large_int operator|(const large_int &a, const large_int &b) MSR_NOEXCEPT {
+
+    large_int operator|(const large_int &a, const large_int &b) noexcept {
         auto c = a;
-        return c |= b;
+        return std::move(c |= b);
     }
-    large_int operator^(const large_int &a, const large_int &b) MSR_NOEXCEPT {
+
+    large_int operator^(const large_int &a, const large_int &b) noexcept {
         auto c = a;
-        return c ^= b;
+        return std::move(c ^= b);
     }
-    large_int operator+(const large_int &a, const large_int &b) MSR_NOEXCEPT {
+
+    large_int operator+(const large_int &a, const large_int &b) noexcept {
         large_int c = a;
-        c += b;
-        return c;
+        return std::move(c += b);
     }
-    large_int operator-(const large_int &a, const large_int &b) MSR_NOEXCEPT {
+
+    large_int operator-(const large_int &a, const large_int &b) noexcept {
         large_int c = a;
-        c -= b;
-        return c;
+        return std::move(c -= b);
     }
-    large_int operator*(const large_int &a, const large_int &b) MSR_NOEXCEPT {
+
+    large_int operator*(const large_int &a, const large_int &b) noexcept {
         auto c = a;
-        return c *= b;
+        return std::move(c *= b);
     }
-    large_int operator/(const large_int &a, const large_int &b) MSR_THROW(large_int::divide_by_zero) {
+
+    large_int operator/(const large_int &a, const large_int &b) throw(divide_by_zero) {
         auto c = a;
-        return c /= b;
+        return std::move(c /= b);
     }
-    large_int operator%(const large_int &a, const large_int &b) MSR_THROW(large_int::divide_by_zero) {
+
+    large_int operator%(const large_int &a, const large_int &b) throw(divide_by_zero) {
         auto c = a;
-        return c %= b;
+        return std::move(c %= b);
     }
-    large_int::operator bool() const MSR_NOEXCEPT {
+
+    large_int::operator bool() const noexcept {
         return num_.size() != 1 || *num_.rbegin() != 0;
     }
+
     template <unsigned int Ary, class Char, class C = typename std::enable_if<(Ary > 1)>::type>
-    std::basic_ostream<Char> &output(std::basic_ostream<Char> &os, const large_int &n) MSR_NOEXCEPT {
+    std::basic_ostream<Char> &output(std::basic_ostream<Char> &os, const large_int &n) noexcept {
+        using namespace detail;
         if (n.signed_) {
             os << '-';
         }
-        const std::size_t length = large_int::unit_bits * n.num_.size() / (number_bit_size<Ary>::value - 1) + 2;
+        const size_t length = MSR_BITS_PER_BYTE * n.num_.size() / (bit_size<Ary>::value - 1) + 2;
         std::vector<digit<Ary>> sum(length, 0u);
         std::vector<digit<Ary>> pow(length, 0u);
         pow[0]++;
-        std::size_t pow_size = 1;
-        auto bit_of = [&](const std::size_t &i) {
-            auto div = std::lldiv(i, large_int::unit_bits);
+        size_t pow_size = 1;
+        auto bit_of = [&](const size_t &i) {
+            auto div = std::lldiv(i, MSR_BITS_PER_BYTE);
             auto quot = static_cast<size_t>(div.quot);
-            auto rem = static_cast<large_int::unit_type>(div.rem);
+            auto rem = static_cast<byte>(div.rem);
             return n.num_[quot] & (1 << rem);
         };
-        for (std::size_t i = 0; i < n.num_.size() * large_int::unit_bits; ++i) {
+        for (size_t i = 0; i < n.num_.size() * MSR_BITS_PER_BYTE; ++i) {
             if (bit_of(i)) {
                 sum[0] += pow[0];
                 auto carry = sum[0].carry();
                 auto last_carry = carry;
-                for (std::size_t j = 1; j < pow_size; ++j) {
+                for (size_t j = 1; j < pow_size; ++j) {
                     sum[j] += last_carry;
                     carry = sum[j].carry();
                     sum[j] += pow[j];
@@ -483,7 +533,7 @@ namespace msr {
             pow[0] *= 2u;
             auto carry = pow[0].carry();
             auto last_carry = carry;
-            for (std::size_t j = 1; j < pow_size; ++j) {
+            for (size_t j = 1; j < pow_size; ++j) {
                 pow[j] *= 2u;
                 carry = pow[j].carry();
                 pow[j] += last_carry;
@@ -505,8 +555,9 @@ namespace msr {
         os << ss.str();
         return os;
     }
+
     template <class Char>
-    std::basic_ostream<Char> &operator<<(std::basic_ostream<Char> &os, const large_int &n) MSR_NOEXCEPT {
+    std::basic_ostream<Char> &operator<<(std::basic_ostream<Char> &os, const large_int &n) noexcept {
         const auto &flags = os.flags();
         if (flags & std::ios::oct) {
             return output<8>(os, n);
@@ -517,6 +568,7 @@ namespace msr {
         }
         return os;
     }
+
 }
 
 #endif
