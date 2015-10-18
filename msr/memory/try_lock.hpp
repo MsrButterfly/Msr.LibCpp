@@ -4,6 +4,7 @@
 #include <memory>
 
 namespace msr {
+
     template <class T>
     std::shared_ptr<T> try_lock(std::weak_ptr<T> p) {
         try {
@@ -12,6 +13,7 @@ namespace msr {
             return nullptr;
         }
     }
+      
 }
 
 #endif
