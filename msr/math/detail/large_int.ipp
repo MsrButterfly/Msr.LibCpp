@@ -2,6 +2,7 @@
 #define MSR_MATH_DETAIL_LARGE_INT_IPP_INCLUDED
 
 #include <algorithm>
+#include <cstring>
 #include <iomanip>
 #include <iterator>
 #include <sstream>
@@ -46,7 +47,6 @@ namespace msr {
 
     template <class T, class C>
     T large_int::get() const throw(out_of_range) {
-        using namespace std;
         if (!representable<T>()) {
             throw out_of_range(MSR_FUNCTION_SIGNATURE, "");
         }
@@ -57,7 +57,8 @@ namespace msr {
         if (is_little_endian()) {
             memcpy(&ret, num_.data(), num_.size());
         } else if (is_big_endian()) {
-            auto it = rbegin(ret.bytes);
+            // std::rbegin() is first introduced in C++14.
+            auto it = ret.bytes + sizeof(T) - 1;
 #if defined(_MSC_VER) && _SECURE_SCL == 1
             // Tricking the Secure SCL.
             // reverse_iterator<byte *> is supported by the implementation,
@@ -67,7 +68,7 @@ namespace msr {
 #else
             auto dest = it;
 #endif
-            copy(begin(num_), end(num_), dest);
+            std::copy(num_.begin(), num_.end(), dest);
         }
         if (signed_) {
             ret.value = -(intmax_t)ret.value;
