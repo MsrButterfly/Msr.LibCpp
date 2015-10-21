@@ -21,10 +21,7 @@ namespace msr {
     : signed_(another.signed_), num_(another.num_) {}
 
     large_int::large_int(self_type &&another) noexcept
-    : signed_(another.signed_), num_(std::move(another.num_)) {
-        another.signed_ = false;
-        another.num_ = {0};
-    }
+    : signed_(std::move(another.signed_)), num_(std::move(another.num_)) {}
 
     template <class T, class C>
     large_int::large_int(const T &num) noexcept
@@ -142,10 +139,8 @@ namespace msr {
         return *this;
     }
     large_int &large_int::operator=(self_type &&another) noexcept {
-        signed_ = another.signed_;
-        num_ = another.num_;
-        another.signed_ = false;
-        another.num_ = {0};
+        signed_ = std::move(another.signed_);
+        num_ = std::move(another.num_);
         return *this;
     }
 
